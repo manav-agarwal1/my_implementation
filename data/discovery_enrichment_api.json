@@ -1,0 +1,1859 @@
+{
+    "description": "The Crustdata API gives you programmatic access to firmographic and growth metrics data for companies across the world from more than 16 datasets (Linkedin headcount, Glassdoor, Instagram, G2, Web Traffic, Apple App Store reviews, Google Play Store, News among others). This documentation describes various available API calls and schema of the response. If you have any questions, please reach out to [abhilash@crustdata.com](mailto:abhilash@crustdata.com).",
+    "$auth_token": "Reach out to abhilash@crustdata.com get an authorization token (API key) .",
+    "endpoints": {
+        "company_endpoints": {
+            "data_api": {
+                "description": "This endpoint enriches company data by retrieving detailed information about one or multiple companies using either their domain, name, or ID.",
+                "request_parameters": {
+                    "company_domain": {
+                        "type": "string",
+                        "description": "The domain(s) of the company(ies) you want to retrieve data for.",
+                        "example": "company_domain=hubspot.com,google.com",
+                        "constraints": "comma-separated list, up to 25 domains"
+                    },
+                    "company_name": {
+                        "type": "string",
+                        "description": "The name(s) of the company(ies) you want to retrieve data for.",
+                        "example": "company_name=\"Acme, Inc.\",\"Widget Co\"",
+                        "constraints": "comma-separated list, up to 25 names; use double quotes if names contain commas"
+                    },
+                    "company_linkedin_url": {
+                        "type": "string",
+                        "description": "The LinkedIn URL(s) of the company(ies).",
+                        "example": "company_linkedin_url=https://linkedin.com/company/hubspot,https://linkedin.com/company/clay-hq",
+                        "constraints": "comma-separated list, up to 25 URLs"
+                    },
+                    "company_id": {
+                        "type": "integer",
+                        "description": "The unique ID(s) of the company(ies) you want to retrieve data for.",
+                        "example": "company_id=12345,67890",
+                        "constraints": "comma-separated list, up to 25 IDs"
+                    },
+                    "fields": {
+                        "type": "string",
+                        "description": "Specifies the fields you want to include in the response. Supports nested fields up to a certain level.",
+                        "example": "fields=company_name,company_domain,glassdoor.glassdoor_review_count",
+                        "additional_info": {
+                        "nested_fields": {
+                            "description": "You can specify nested fields up to the levels defined in the response structure. Fields nested beyond the allowed levels or within lists (arrays) cannot be individually accessed.",
+                            "limitations": {
+                                "maximum_nesting_fields": "You can specify nested fields only up to the levels defined above",
+                                "default_exclusion_of_certain_fields": {
+                                    "descri[tion" :"Even if you have access to fields like decision_makers and founders.profiles, they will not be included in the response by default when the fields parameter is not provided. You must explicitly request these fields using the fields parameter.",
+                                    "example": "curl 'https://api.crustdata.com/screener/company?company_id=123&fields=decision_makers,founders.profiles' \\\r\n  --header 'Authorization: Token $token' \\\r\n  --header 'Accept: application/json'"
+                                },
+                                "unavailable_fields": "If you request a field that is not available or beyond the allowed nesting level, the API will return an error indicating that the field is not available for filtering."
+                            }
+                        },
+                        "default_fields": {
+                            "top_level_non_object_fields": "If you do not specify the `fields` parameter, the response will include all top-level non-object fields by default (e.g., `company_name`, `company_id`).",
+                            "object_fields": "By default, the response will not include object fields like `decision_makers` and `founders.profiles`, even if you have access to them. To include these fields, you must explicitly specify them using the `fields` parameter."
+                        },
+                        "user_permissions": "Access to certain fields may be restricted based on your user permissions. If you request fields you do not have access to, the API will return an error indicating unauthorized access."
+                        }
+                    },
+                    "enrich_realtime": {
+                        "type": "boolean",
+                        "description": "When True and the requested company is not present in Crustdata’s database, the company is enriched within 10 minutes of the request.",
+                        "default": false
+                    }
+                },
+                "examples": {
+                    "example_one": {
+                        "pattern": "Request by Company Domain",
+                        "use_case": "Ideal for users who have one or more company website domains and need to fetch detailed profiles.",
+                        "note": "You can provide up to 25 domains in a comma-separated list.",
+                        "curl_example": "curl 'https://api.crustdata.com/screener/company?company_domain=hubspot.com,google.com' \\\r\n  --header 'Accept: application/json, text/plain, */*' \\\r\n  --header 'Accept-Language: en-US,en;q=0.9' \\\r\n  --header 'Authorization: Token $token'"
+                    },
+                    "example_two": {
+                        "pattern": "Request by Company Name",
+                        "use_case": "Suitable for users who have one or more company names and need to retrieve detailed profiles.",
+                        "note": "You can provide up to 25 names in a comma-separated list. If a company name contains a comma, enclose the name in double quotes.",
+                        "curl_example": "curl 'https://api.crustdata.com/screener/company?company_name=\"HubSpot\",\"Google, Inc.\"' \\\r\n  --header 'Accept: application/json, text/plain, */*' \\\r\n  --header 'Accept-Language: en-US,en;q=0.9' \\\r\n  --header 'Authorization: Token $token'"
+                    },
+                    "example_three": {
+                        "pattern": "Request by Company LinkedIn URL",
+                        "use_case": "Suitable for users who have one or more company Linkedin urls and need to retrieve detailed profiles.",
+                        "note": "You can provide up to 25 names in a comma-separated list. If a company name contains a comma, enclose the name in double quotes.",
+                        "curl_example": "curl 'https://api.crustdata.com/screener/company?company_linkedin_url=https://linkedin.com/company/hubspot,https://linkedin.com/company/clay-hq' \\\r\n  --header 'Accept: application/json, text/plain, */*' \\\r\n  --header 'Accept-Language: en-US,en;q=0.9' \\\r\n  --header 'Authorization: Token $token'"
+                    },
+                    "example_four": {
+                        "pattern": "Request by Company ID",
+                        "use_case": "Suitable for users who have ingested one or more companies from Crustdata already and want to enrich their data by Crustdata’s company_id. Users generally use this when they want time-series data for specific companies after obtaining the company_id from the screening endpoint.",
+                        "note": "You can provide up to 25 IDs in a comma-separated list.",
+                        "curl_example": "curl 'https://api.crustdata.com/screener/company?company_id=631480,789001' \\\r\n  --header 'Accept: application/json, text/plain, */*' \\\r\n  --header 'Accept-Language: en-US,en;q=0.9' \\\r\n  --header 'Authorization: Token $token'"
+                    },
+                    "example_five": {
+                        "pattern": "Request with Specific Fields",
+                        "use_case": "Fetch only specific fields to tailor the response to your needs.",
+                        "curl_example": "curl 'https://api.crustdata.com/screener/company?company_domain=swiggy.com&fields=company_name,headcount.linkedin_headcount' \\\r\n  --header 'Authorization: Token $token' \\\r\n  --header 'Accept: application/json'"
+                    },
+                    "example_six": {
+                        "pattern": "Request with Realtime Enrichment",
+                        "use_case": "For companies not tracked by Crustdata, you want to enrich them within 10 minutes of the request",
+                        "curl_example": "curl --location 'https://api.crustdata.com/screener/company?company_linkedin_url=https://www.linkedin.com/company/usebramble&enrich_realtime=True' \\\r\n--header 'Accept: application/json, text/plain, /' \\\r\n--header 'Accept-Language: en-US,en;q=0.9' \\\r\n--header 'Authorization: Token $token'"
+                    }
+                },
+                "response_structure": {
+                    "description": "The response is a JSON array containing company objects. Below is the structure of the response up to the levels where you can filter using the fields parameter. The response provides a comprehensive profile of the company, including firmographic details, social media links, headcount data, and growth metrics.",
+                    "top_level_fields": {
+                        "company_id": {
+                            "type": "integer"
+                        },
+                        "company_name": {
+                            "type": "string"
+                        },
+                        "linkedin_profile_url": {
+                            "type": "string"
+                        },
+                        "linkedin_id": {
+                            "type": "string"
+                        },
+                        "linkedin_logo_url": {
+                            "type": "string"
+                        },
+                        "company_twitter_url": {
+                            "type": "string"
+                        },
+                        "company_website_domain": {
+                            "type": "string"
+                        },
+                        "hq_country": {
+                            "type": "string"
+                        },
+                        "headquarters": {
+                            "type": "string"
+                        },
+                        "largest_headcount_country": {
+                            "type": "string"
+                        },
+                        "hq_street_address": {
+                            "type": "string"
+                        },
+                        "company_website": {
+                            "type": "string"
+                        },
+                        "year_founded": {
+                            "type": "string",
+                            "format": "ISO 8601 date"
+                        },
+                        "fiscal_year_end": {
+                            "type": "string"
+                        },
+                        "estimated_revenue_lower_bound_usd": {
+                            "type": "integer"
+                        },
+                        "estimated_revenue_higher_bound_usd": {
+                            "type": "integer"
+                        },
+                        "employee_count_range": {
+                            "type": "string"
+                        },
+                        "company_type": {
+                            "type": "string"
+                        },
+                        "linkedin_company_description": {
+                            "type": "string"
+                        },
+                        "acquisition_status": {
+                            "type": ["string", "null"]
+                        },
+                        "ceo_location": {
+                            "type": "string"
+                        }
+                    },
+                    "nested_objects": {
+                        "all_office_addresses": {
+                        "type": "array of strings"
+                        },
+                        "markets": {
+                        "type": "array of strings"
+                        },
+                        "stock_symbols": {
+                        "type": "array of strings"
+                        },
+                        "taxonomy": {
+                        "linkedin_specialities": {
+                            "type": "array of strings"
+                        },
+                        "linkedin_industries": {
+                            "type": "array of strings"
+                        },
+                        "crunchbase_categories": {
+                            "type": "array of strings"
+                        }
+                        },
+                        "competitors": {
+                        "competitor_website_domains": {
+                            "type": "array of strings or null"
+                        },
+                        "paid_seo_competitors_website_domains": {
+                            "type": "array of strings"
+                        },
+                        "organic_seo_competitors_website_domains": {
+                            "type": "array of strings"
+                        }
+                        },
+                        "headcount": {
+                        "linkedin_headcount": {
+                            "type": "integer"
+                        },
+                        "linkedin_headcount_total_growth_percent": {
+                            "mom": {
+                            "type": "float"
+                            },
+                            "qoq": {
+                            "type": "float"
+                            },
+                            "six_months": {
+                            "type": "float"
+                            },
+                            "yoy": {
+                            "type": "float"
+                            },
+                            "two_years": {
+                            "type": "float"
+                            }
+                        },
+                        "linkedin_headcount_total_growth_absolute": {
+                            "mom": {
+                            "type": "float"
+                            },
+                            "qoq": {
+                            "type": "float"
+                            },
+                            "six_months": {
+                            "type": "float"
+                            },
+                            "yoy": {
+                            "type": "float"
+                            },
+                            "two_years": {
+                            "type": "float"
+                            }
+                        },
+                        "linkedin_headcount_by_role_absolute": {
+                            "type": "object"
+                        },
+                        "linkedin_headcount_by_role_percent": {
+                            "type": "object"
+                        },
+                        "linkedin_role_metrics": {
+                            "all_roles": {
+                            "type": "string"
+                            },
+                            "0_to_10_percent": {
+                            "type": "string"
+                            },
+                            "11_to_30_percent": {
+                            "type": "string"
+                            },
+                            "31_to_50_percent": {
+                            "type": "string or null"
+                            },
+                            "51_to_70_percent": {
+                            "type": "string or null"
+                            },
+                            "71_to_100_percent": {
+                            "type": "string or null"
+                            }
+                        },
+                        "linkedin_headcount_by_role_six_months_growth_percent": {
+                            "type": "object"
+                        },
+                        "linkedin_headcount_by_role_yoy_growth_percent": {
+                            "type": "object"
+                        },
+                        "linkedin_headcount_by_region_absolute": {
+                            "type": "object"
+                        },
+                        "linkedin_headcount_by_region_percent": {
+                            "type": "object"
+                        },
+                        "linkedin_region_metrics": {
+                            "all_regions": {
+                            "type": "string"
+                            },
+                            "0_to_10_percent": {
+                            "type": "string"
+                            },
+                            "11_to_30_percent": {
+                            "type": "string"
+                            },
+                            "31_to_50_percent": {
+                            "type": "string or null"
+                            },
+                            "51_to_70_percent": {
+                            "type": "string or null"
+                            },
+                            "71_to_100_percent": {
+                            "type": "string or null"
+                            }
+                        },
+                        "linkedin_headcount_by_skill_absolute": {
+                            "type": "object"
+                        },
+                        "linkedin_headcount_by_skill_percent": {
+                            "type": "object"
+                        },
+                        "linkedin_skill_metrics": {
+                            "all_skills": {
+                            "type": "string"
+                            },
+                            "0_to_10_percent": {
+                            "type": "string or null"
+                            },
+                            "11_to_30_percent": {
+                            "type": "string"
+                            },
+                            "31_to_50_percent": {
+                            "type": "string or null"
+                            },
+                            "51_to_70_percent": {
+                            "type": "string or null"
+                            },
+                            "71_to_100_percent": {
+                            "type": "string or null"
+                            }
+                        },
+                        "linkedin_headcount_timeseries": {
+                            "type": "array of objects"
+                        },
+                        "linkedin_headcount_by_function_timeseries": {
+                            "type": "object"
+                        }
+                        },
+                        "web_traffic": {
+                        "monthly_visitors": {
+                            "type": "integer"
+                        },
+                        "monthly_visitor_mom_pct": {
+                            "type": "float"
+                        },
+                        "monthly_visitor_qoq_pct": {
+                            "type": "float"
+                        },
+                        "traffic_source_social_pct": {
+                            "type": "float"
+                        },
+                        "traffic_source_search_pct": {
+                            "type": "float"
+                        },
+                        "traffic_source_direct_pct": {
+                            "type": "float"
+                        },
+                        "traffic_source_paid_referral_pct": {
+                            "type": "float"
+                        },
+                        "traffic_source_referral_pct": {
+                            "type": "float"
+                        },
+                        "monthly_visitors_timeseries": {
+                            "type": "array of objects"
+                        },
+                        "traffic_source_social_pct_timeseries": {
+                            "type": "array of objects"
+                        },
+                        "traffic_source_search_pct_timeseries": {
+                            "type": "array of objects"
+                        },
+                        "traffic_source_direct_pct_timeseries": {
+                            "type": "array of objects"
+                        },
+                        "traffic_source_paid_referral_pct_timeseries": {
+                            "type": "array of objects"
+                        },
+                        "traffic_source_referral_pct_timeseries": {
+                            "type": "array of objects"
+                        }
+                        },
+                        "glassdoor": {
+                        "glassdoor_overall_rating": {
+                            "type": "float"
+                        },
+                        "glassdoor_ceo_approval_pct": {
+                            "type": "integer"
+                        },
+                        "glassdoor_business_outlook_pct": {
+                            "type": "integer"
+                        },
+                        "glassdoor_review_count": {
+                            "type": "integer"
+                        },
+                        "glassdoor_senior_management_rating": {
+                            "type": "float"
+                        },
+                        "glassdoor_compensation_rating": {
+                            "type": "float"
+                        },
+                        "glassdoor_career_opportunities_rating": {
+                            "type": "float"
+                        },
+                        "glassdoor_culture_rating": {
+                            "type": "float or null"
+                        },
+                        "glassdoor_diversity_rating": {
+                            "type": "float or null"
+                        },
+                        "glassdoor_work_life_balance_rating": {
+                            "type": "float or null"
+                        },
+                        "glassdoor_recommend_to_friend_pct": {
+                            "type": "integer or null"
+                        },
+                        "glassdoor_ceo_approval_growth_percent": {
+                            "mom": {
+                            "type": "float"
+                            },
+                            "qoq": {
+                            "type": "float"
+                            },
+                            "yoy": {
+                            "type": "float"
+                            }
+                        },
+                        "glassdoor_review_count_growth_percent": {
+                            "mom": {
+                            "type": "float"
+                            },
+                            "qoq": {
+                            "type": "float"
+                            },
+                            "yoy": {
+                            "type": "float"
+                            }
+                        }
+                        },
+                        "g2": {
+                        "g2_review_count": {
+                            "type": "integer"
+                        },
+                        "g2_average_rating": {
+                            "type": "float"
+                        },
+                        "g2_review_count_mom_pct": {
+                            "type": "float"
+                        },
+                        "g2_review_count_qoq_pct": {
+                            "type": "float"
+                        },
+                        "g2_review_count_yoy_pct": {
+                            "type": "float"
+                        }
+                        },
+                        "linkedin_followers": {
+                        "linkedin_followers": {
+                            "type": "integer"
+                        },
+                        "linkedin_follower_count_timeseries": {
+                            "type": "array of objects"
+                        },
+                        "linkedin_followers_mom_percent": {
+                            "type": "float"
+                        },
+                        "linkedin_followers_qoq_percent": {
+                            "type": "float"
+                        },
+                        "linkedin_followers_six_months_growth_percent": {
+                            "type": "float"
+                        },
+                        "linkedin_followers_yoy_percent": {
+                            "type": "float"
+                        }
+                        },
+                        "funding_and_investment": {
+                        "crunchbase_total_investment_usd": {
+                            "type": "integer"
+                        },
+                        "days_since_last_fundraise": {
+                            "type": "integer"
+                        },
+                        "last_funding_round_type": {
+                            "type": "string"
+                        },
+                        "crunchbase_investors": {
+                            "type": "array of strings"
+                        },
+                        "last_funding_round_investment_usd": {
+                            "type": "integer"
+                        },
+                        "funding_milestones_timeseries": {
+                            "type": "array of objects"
+                        }
+                        },
+                        "job_openings": {
+                        "recent_job_openings_title": {
+                            "type": "string or null"
+                        },
+                        "job_openings_count": {
+                            "type": "integer or null"
+                        },
+                        "job_openings_count_growth_percent": {
+                            "mom": {
+                            "type": "float or null"
+                            },
+                            "qoq": {
+                            "type": "float or null"
+                            },
+                            "yoy": {
+                            "type": "float or null"
+                            }
+                        },
+                        "job_openings_by_function_qoq_pct": {
+                            "type": "object"
+                        },
+                        "job_openings_by_function_six_months_growth_pct": {
+                            "type": "object"
+                        },
+                        "open_jobs_timeseries": {
+                            "type": "array of objects"
+                        },
+                        "recent_job_openings": {
+                            "type": "array of objects"
+                        }
+                        },
+                        "seo": {
+                        "average_seo_organic_rank": {
+                            "type": "integer"
+                        },
+                        "monthly_paid_clicks": {
+                            "type": "integer"
+                        },
+                        "monthly_organic_clicks": {
+                            "type": "integer"
+                        },
+                        "average_ad_rank": {
+                            "type": "integer"
+                        },
+                        "total_organic_results": {
+                            "type": "integer or float"
+                        },
+                        "monthly_google_ads_budget": {
+                            "type": "integer or float"
+                        },
+                        "monthly_organic_value": {
+                            "type": "integer"
+                        },
+                        "total_ads_purchased": {
+                            "type": "integer"
+                        },
+                        "lost_ranked_seo_keywords": {
+                            "type": "integer"
+                        },
+                        "gained_ranked_seo_keywords": {
+                            "type": "integer"
+                        },
+                        "newly_ranked_seo_keywords": {
+                            "type": "integer"
+                        }
+                        },
+                        "founders": {
+                        "founders_locations": {
+                            "type": "array of strings"
+                        },
+                        "founders_education_institute": {
+                            "type": "array of strings"
+                        },
+                        "founders_degree_name": {
+                            "type": "array of strings"
+                        },
+                        "founders_previous_companies": {
+                            "type": "array of strings"
+                        },
+                        "founders_previous_titles": {
+                            "type": "array of strings"
+                        },
+                        "profiles": {
+                            "type": "array of objects"
+                        }
+                        },
+                        "decision_makers": {
+                        "decision_makers": {
+                            "type": "array of objects"
+                        }
+                        },
+                        "news_articles": {
+                        "news_articles": {
+                            "type": "array of objects"
+                        }
+                        }
+                    },
+                    "notes": {
+                        "credits": {
+                            "database_enrichment": "1 credits per company.",
+                            "real_time_enrichment": "4+1 credits per company"
+                        },
+                        "encrichment_status": {
+                            "description": "When you request data for a company not in our database, we start an enrichment process that takes up to 24 hours (or 10 minutes if enrich_realtime is true).",
+                            "status": {
+                                "enriching": "When you request data for a company not in our database, we start an enrichment process that takes up to 24 hours (or 10 minutes if enrich_realtime is true).",
+                                "not_found": "Enrichment failed (e.g., no website or employees). You can stop polling for this company."
+                            }
+                        }
+                    }
+                }
+            },
+            "screening_api": {
+                "description": "The company screening API request allows you to screen and filter companies based on various growth and firmographic criteria",
+                "request_parameters": {
+                    "Required": {
+                        "metrics": {
+                            "description": "An array of metric objects containing the metric name.",
+                            "example": "[{\"metric_name\": \"linkedin_headcount_and_glassdoor_ceo_approval_and_g2\"}]"
+                        },
+                        "filters": {
+                            "description": "An object containing the filter conditions.",
+                            "parameters": {
+                                "op": {
+                                    "description": "The operator to apply on the conditions.",
+                                    "values": ["and", "or"]
+                                },
+                                "condition": {
+                                    "description": "An array of complex filter objects or basic filter objects.",
+                                    "values": {
+                                        "Basic": {
+                                            "parameters": {
+                                                "column": {
+                                                    "description": "The name of the column to filter.",
+                                                    "values": [
+                                                                "linkedin_id",
+                                                                "company_website",
+                                                                "fiscal_year_end",
+                                                                "company_name",
+                                                                "markets",
+                                                                "company_website_domain",
+                                                                "largest_headcount_country",
+                                                                "crunchbase_total_investment_usd",
+                                                                "acquisition_status",
+                                                                "crunchbase_valuation_usd",
+                                                                "crunchbase_valuation_lower_bound_usd",
+                                                                "crunchbase_valuation_date",
+                                                                "crunchbase_profile_url",
+                                                                "title",
+                                                                "category",
+                                                                "url",
+                                                                "domain",
+                                                                "number_of_openings",
+                                                                "description",
+                                                                "date_added",
+                                                                "date_updated",
+                                                                "city",
+                                                                "location_text",
+                                                                "workplace_type",
+                                                                "reposted_job",
+                                                                "dataset_row_id",
+                                                                "pin_area_name",
+                                                                "pincode",
+                                                                "district",
+                                                                "district_geocode",
+                                                                "wikidata_id",
+                                                                "state",
+                                                                "state_geocode",
+                                                                "country",
+                                                                "country_code",
+                                                                "company_id"
+                                                            ]
+                                                },
+                                                "type": {
+                                                    "description": "The filter type. The value can be =>, =<, =, !=, in, (.), [.]",
+                                                    "values": {
+                                                        "<": {
+                                                            "description": "Lesser than",
+                                                            "applicable_column_type": "number"
+                                                        },
+                                                        ">": {
+                                                            "description": "Greater than",
+                                                            "applicable_column_type": "number"
+                                                        },
+                                                        "=>": {
+                                                            "description": "Greater than or equal",
+                                                            "applicable_column_type": "number"
+                                                        },
+                                                        "=<": {
+                                                            "description": "Lesser than or equal",
+                                                            "applicable_column_type": "number"
+                                                        },
+                                                        "=": {
+                                                            "description": "Equal",
+                                                            "applicable_column_type": "number"
+                                                        },
+                                                        "!=": {
+                                                            "description": "Not Equal",
+                                                            "applicable_column_type": "number"
+                                                        },
+                                                        "in": {
+                                                            "description": "Exactly matches atleast one of the elements of list",
+                                                            "applicable_column_type": "string and number"
+                                                        },
+                                                        "(.)": {
+                                                            "description": "Contains, case insensitive",
+                                                            "applicable_column_type": "string"
+                                                        },
+                                                        "[.]": {
+                                                            "description": "Contains, case sensitive",
+                                                            "applicable_column_type": "string"
+                                                        }
+                                                    }
+                                                },
+                                                "value": "The filter value.",
+                                                "allow_null": {
+                                                    "description": "A Boolean flag. Whether to allow null values. The value can be true or false.",
+                                                    "default_value": "false"
+                                                }
+                                            },
+                                            "example": "{\"column\": \"crunchbase_total_investment_usd\", \"type\": \"=>\", \"value\": \"50\" }"
+                                        },
+                                        "Complex": {
+                                            "example": "{\"largest_headcount_country\", \"type\": \"(.)\", \"value\": \"USA\"}",
+                                            "note": "Same as "
+                                        }
+                                    }
+                                }
+                            },
+                            "example": {
+                                "company_id": [680992, 673947, 631280, 636304, 631811],
+                                "date_updated": "2024-02-01"
+                            }
+                        },
+                        "offset": {
+                            "description": "The starting point of the result set. Default value is 0.",
+                            "default_value": 0,
+                            "example": 0,
+                            "note": "To retrieve all the jobs listings, keep iterating over offset field in the payload."
+                        },
+                        "count": {
+                            "description": "The number of results to return in a single request.",
+                            "max_value": 100,
+                            "default_value": 100,
+                            "example": 100,
+                            "note": "Do not increase limit beyond 100 as the result will be truncated without any ordering."
+                        }
+                    },
+                    "Optional": {
+                        "sorts": "An array of sorting criteria."
+                    }
+                },
+                "examples": {
+                    "example_one": {
+                        "problem": {
+                            "conditon_one": "Comapnies have raised > $5,000,000 in total funding AND",
+                            "conditon_two": "Companies have headcount > 50 AND",
+                            "conditon_three": "Companies have largest headcount country as USA"
+                        },
+                        "curl_solution": "curl 'https://api.crustdata.com/screener/screen/' \\\r\n-H 'Accept: application/json, text/plain, /' \\\r\n-H 'Accept-Language: en-US,en;q=0.9' \\\r\n-H 'Authorization: Token $auth_token' \\\r\n-H 'Connection: keep-alive' \\\r\n-H 'Content-Type: application/json' \\\r\n-H 'Origin: https://crustdata.com' \\\r\n--data-raw '{\r\n    \"metrics\": [\r\n      {\r\n        \"metric_name\": \"linkedin_headcount_and_glassdoor_ceo_approval_and_g2\"\r\n      }\r\n    ],\r\n    \"filters\": {\r\n      \"op\": \"and\",\r\n      \"conditions\": [\r\n                {\r\n                  \"column\": \"crunchbase_total_investment_usd\",\r\n                  \"type\": \"=>\",\r\n                  \"value\": 5000000,\r\n                  \"allow_null\": false\r\n                },\r\n                {\r\n                  \"column\": \"linkedin_headcount\",\r\n                  \"type\": \"=>\",\r\n                  \"value\": 50,\r\n                  \"allow_null\": false\r\n                },\r\n                {\r\n                  \"column\": \"largest_headcount_country\",\r\n                  \"type\": \"(.)\",\r\n                  \"value\": \"USA\",\r\n                  \"allow_null\": false\r\n                }\r\n      ]\r\n    },\r\n    \"hidden_columns\": [],\r\n    \"offset\": 0,\r\n    \"count\": 100,\r\n    \"sorts\": []\r\n  }' \\\r\n--compressed",
+                        "python_solution": "import requests\r\n\r\nheaders = {\r\n    'Accept': 'application/json, text/plain, /',\r\n    'Accept-Language': 'en-US,en;q=0.9',\r\n    'Authorization': 'Token $auth_token', # replace $auth_token\r\n    'Connection': 'keep-alive',\r\n    'Content-Type': 'application/json',\r\n    'Origin': 'https://crustdata.com'\r\n}\r\n\r\njson_data = {\r\n    'metrics': [\r\n        {\r\n            'metric_name': 'linkedin_headcount_and_glassdoor_ceo_approval_and_g2',\r\n        },\r\n    ],\r\n    'filters': {\r\n        'op': 'and',\r\n        'conditions': [\r\n            {\r\n                'column': 'crunchbase_total_investment_usd',\r\n                'type': '=>',\r\n                'value': 5000000,\r\n                'allow_null': False,\r\n            },\r\n            {\r\n                'column': 'linkedin_headcount',\r\n                'type': '=>',\r\n                'value': 50,\r\n                'allow_null': False,\r\n            },\r\n            {\r\n                'column': 'largest_headcount_country',\r\n                'type': '(.)',\r\n                'value': 'USA',\r\n                'allow_null': False,\r\n            },\r\n        ],\r\n    },\r\n    'hidden_columns': [],\r\n    'offset': 0,\r\n    'count': 100,\r\n    'sorts': []\r\n}\r\n\r\nresponse = requests.post('https://api.crustdata.com/screener/screen/', headers=headers, json=json_data)"
+                    }
+                },
+                "response": {
+                    "description": "The response is JSON object that consists of two main components: fields and rows.",
+                    "fields": "An array of objects representing the columns in the dataset.",
+                    "rows": "An array of arrays, each representing a row of data.",
+                    "note": "The values in each of the rows elements are ordered in the same sequence as the fields in the fields array. For example, the ith value in a row corresponds to the ith field in the fields array.",
+                    "parsing_steps": [
+                        {
+                        "step": "Iterate over each row in the 'rows' array",
+                        "description": "Each row contains a list of values that corresponds to the fields listed in the 'fields' array."
+                        },
+                        {
+                        "step": "For each row, iterate over the values in that row",
+                        "description": "Each value in the row corresponds to a specific field, identified by the 'api_name' in the 'fields' array."
+                        },
+                        {
+                        "step": "Map the value from the row to the corresponding field based on the 'api_name'",
+                        "description": "For each value in the row, map it to the field identified by 'api_name' at the same index in the 'fields' array."
+                        },
+                        {
+                        "step": "Create an object for each row that maps 'api_name' to the respective value from the row",
+                        "description": "For each row, create an object where the keys are 'api_name' and the values are the respective values from the row."
+                        },
+                        {
+                        "step": "Handle missing or null values",
+                        "description": "If a value is 'null' or missing, ensure it's handled appropriately, either by assigning a default value or keeping it as null."
+                        }
+                    ],
+                    "columns_list": [
+                        "company_name",
+                        "company_website",
+                        "company_website_domain",
+                        "linkedin_profile_url",
+                        "monthly_visitors",
+                        "valuation_usd",
+                        "crunchbase_total_investment_usd",
+                        "markets",
+                        "days_since_last_fundraise",
+                        "linkedin_headcount",
+                        "linkedin_headcount_mom_percent",
+                        "linkedin_headcount_qoq_percent",
+                        "linkedin_headcount_yoy_percent",
+                        "linkedin_headcount_mom_absolute",
+                        "linkedin_headcount_qoq_absolute",
+                        "linkedin_headcount_yoy_absolute",
+                        "glassdoor_overall_rating",
+                        "glassdoor_ceo_approval_pct",
+                        "glassdoor_business_outlook_pct",
+                        "glassdoor_review_count",
+                        "g2_review_count",
+                        "g2_average_rating",
+                        "company_id",
+                        "hq_country",
+                        "headquarters",
+                        "largest_headcount_country",
+                        "last_funding_round_type",
+                        "valuation_date",
+                        "linkedin_categories",
+                        "linkedin_industries",
+                        "crunchbase_investors",
+                        "crunchbase_categories",
+                        "acquisition_status",
+                        "company_year_founded",
+                        "technology_domains",
+                        "founder_names_and_profile_urls",
+                        "founders_location",
+                        "ceo_location",
+                        "founders_education_institute",
+                        "founders_degree_name",
+                        "founders_previous_company",
+                        "founders_previous_title",
+                        "monthly_visitor_mom_pct",
+                        "monthly_visitor_qoq_pct",
+                        "traffic_source_social_pct",
+                        "traffic_source_search_pct",
+                        "traffic_source_direct_pct",
+                        "traffic_source_paid_referral_pct",
+                        "traffic_source_referral_pct",
+                        "meta_total_ads",
+                        "meta_active_ads",
+                        "meta_ad_platforms",
+                        "meta_ad_url",
+                        "meta_ad_id",
+                        "average_organic_rank",
+                        "monthly_paid_clicks",
+                        "monthly_organic_clicks",
+                        "average_ad_rank",
+                        "total_organic_results",
+                        "monthly_google_ads_budget",
+                        "monthly_organic_value",
+                        "total_ads_purchased",
+                        "lost_ranks",
+                        "gained_ranks",
+                        "newly_ranked",
+                        "paid_competitors",
+                        "organic_competitors",
+                        "linkedin_followers",
+                        "linkedin_headcount_engineering",
+                        "linkedin_headcount_sales",
+                        "linkedin_headcount_operations",
+                        "linkedin_headcount_human_resource",
+                        "linkedin_headcount_india",
+                        "linkedin_headcount_usa",
+                        "linkedin_headcount_engineering_percent",
+                        "linkedin_headcount_sales_percent",
+                        "linkedin_headcount_operations_percent",
+                        "linkedin_headcount_human_resource_percent",
+                        "linkedin_headcount_india_percent",
+                        "linkedin_headcount_usa_percent",
+                        "linkedin_followers_mom_percent",
+                        "linkedin_followers_qoq_percent",
+                        "linkedin_followers_yoy_percent",
+                        "linkedin_all_employee_skill_names",
+                        "linkedin_all_employee_skill_count",
+                        "linkedin_employee_skills_0_to_10_pct",
+                        "linkedin_employee_skills_11_to_30_pct",
+                        "linkedin_employee_skills_31_to_50_pct",
+                        "linkedin_employee_skills_51_to_70_pct",
+                        "linkedin_employee_skills_71_to_100_pct",
+                        "glassdoor_culture_rating",
+                        "glassdoor_diversity_rating",
+                        "glassdoor_work_life_balance_rating",
+                        "glassdoor_senior_management_rating",
+                        "glassdoor_compensation_rating",
+                        "glassdoor_career_opportunities_rating",
+                        "glassdoor_recommend_to_friend_pct",
+                        "glassdoor_ceo_approval_mom_pct",
+                        "glassdoor_ceo_approval_qoq_pct",
+                        "glassdoor_ceo_approval_mom_pct.1",
+                        "glassdoor_review_count_mom_pct",
+                        "glassdoor_review_count_qoq_pct",
+                        "glassdoor_review_count_yoy_pct",
+                        "g2_review_count_mom_pct",
+                        "g2_review_count_qoq_pct",
+                        "g2_review_count_yoy_pct",
+                        "instagram_followers",
+                        "instagram_posts",
+                        "instagram_followers_mom_pct",
+                        "instagram_followers_qoq_pct",
+                        "instagram_followers_yoy_pct",
+                        "recent_job_openings_title",
+                        "recent_job_openings_title_count",
+                        "job_openings_count",
+                        "job_openings_count_mom_pct",
+                        "job_openings_count_qoq_pct",
+                        "job_openings_count_yoy_pct",
+                        "job_openings_accounting_qoq_pct",
+                        "job_openings_accounting_six_months_growth_pct",
+                        "job_openings_art_and_design_qoq_pct",
+                        "job_openings_art_and_design_six_months_growth_pct",
+                        "job_openings_business_development_qoq_pct",
+                        "job_openings_business_development_six_months_growth_pct",
+                        "job_openings_engineering_qoq_pct",
+                        "job_openings_engineering_six_months_growth_pct",
+                        "job_openings_finance_qoq_pct",
+                        "job_openings_finance_six_months_growth_pct",
+                        "job_openings_human_resource_qoq_pct",
+                        "job_openings_human_resource_six_months_growth_pct",
+                        "job_openings_information_technology_qoq_pct",
+                        "job_openings_information_technology_six_months_growth_pct",
+                        "job_openings_marketing_qoq_pct",
+                        "job_openings_marketing_six_months_growth_pct",
+                        "job_openings_media_and_communication_qoq_pct",
+                        "job_openings_media_and_communication_six_months_growth_pct",
+                        "job_openings_operations_qoq_pct",
+                        "job_openings_operations_six_months_growth_pct",
+                        "job_openings_research_qoq_pct"
+                    ]
+
+                }
+            },
+            "identification_api": {
+                "description": "Given a company’s name, website or LinkedIn profile, you can identify the company in Crustdata’s database with company identification API",
+                "input": [
+                    "name of the company",
+                    "website of the company",
+                    "linkedIn profile url of the company"
+                ],
+                "request": {
+                    "parameters": 
+                    {
+                        "query_company_name": "name of the company",
+                        "query_company_website" : "website of the company",
+                        "query_company_linkedin_url" : "LinkedIn profile url of the company",
+                        "count": {
+                            "description": "maximum number of results",
+                            "default_value": 10
+                        }
+                    },
+                    "curl_example": "    curl 'https://api.crustdata.com/screener/identify/' \\\r\n    --header 'Accept: application/json, text/plain, */*' \\\r\n    --header 'Accept-Language: en-US,en;q=0.9' \\\r\n    --header 'Authorization: Token $api_token' \\\r\n    --header 'Connection: keep-alive' \\\r\n    --header 'Content-Type: application/json' \\\r\n    --header 'Origin: https://crustdata.com' \\\r\n    --data '{\"query_company_website\": \"serverobotics.com\", \"count\": 1}'"
+                },
+                "response_structure": {
+                    "company_id": {
+                        "type": "string",
+                        "description": "A unique identifier for the company in Crustdata’s database. This value uniquely represents the company."
+                    },
+                    "company_name": {
+                        "type": "string",
+                        "description": "The name of the company as listed in Crustdata’s database."
+                    },
+                    "company_website_domain": {
+                        "type": "string",
+                        "description": "The domain name of the company's website, usually derived from the company’s LinkedIn profile page."
+                    },
+                    "company_website": {
+                        "type": "string",
+                        "description": "The full URL to the company’s website (e.g., 'https://www.companyname.com')."
+                    },
+                    "linkedin_profile_url": {
+                        "type": "string",
+                        "description": "The LinkedIn profile URL for the company, linking to its official LinkedIn page."
+                    },
+                    "linkedin_headcount": {
+                        "type": "number",
+                        "description": "The latest headcount or employee number of the company in Crustdata’s database."
+                    },
+                    "acquisition_status": {
+                        "type": "string",
+                        "description": "The acquisition status of the company, which could be 'acquired' or 'null' if not applicable."
+                    },
+                    "score": {
+                        "type": "number",
+                        "description": "A relative score indicating how well the query parameters match the company’s data in Crustdata’s database. Higher score means better match."
+                    }
+                }
+            },
+            "linkedin_company_search": {
+                "auth_token": {
+                "type": "string",
+                "description": "The authentication token used to authorize the request. It is required to access the LinkedIn Company Search API."
+                },
+                "linkedin_sales_navigator_search_url": {
+                "type": "string",
+                "description": "The URL from the LinkedIn Sales Navigator Accounts search, used to filter companies based on the Sales Navigator search results."
+                },
+                "filters": {
+                    "type": "array",
+                    "description": "An array of filter criteria objects, which specify the filters to apply to the LinkedIn Company Search. Filters can be categorized into text, range, and boolean filters.",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "filter_type": {
+                                "type": "string",
+                                "description": "The type of filter to apply. Examples include 'COMPANY_HEADCOUNT', 'ANNUAL_REVENUE', etc."
+                            },
+                            "type": {
+                                "type": "string",
+                                "description": "The type of filter operation to apply. For text filters, it could be 'in' or 'not in'. For range filters, it could be 'between'. Boolean filters do not use 'type'."
+                            },
+                            "value": {
+                                "type": "object",
+                                "description": "The value(s) to filter on, which can be a single value, an array of values, or a range of values depending on the filter type."
+                            },
+                            "sub_filter": {
+                                "type": "string",
+                                "description": "An optional field that provides additional context for a range filter. For example, specifying the unit of currency in a revenue filter (e.g., 'USD')."
+                            }
+                        }
+                    },
+                    "attributes": {
+                        "company_search": {
+                            "COMPANY_HEADCOUNT": {
+                                "type": "array",
+                                "description": "Specifies the size of the company based on the number of employees.",
+                                "value": ["1-10", "11-50", "51-200", "201-500", "501-1,000", "1,001-5,000", "5,001-10,000", "10,001+"]
+                            },
+                            "REGION": {
+                                "type": "array",
+                                "description": "Specifies the geographical region of the company.",
+                                "value": ["region_values"]
+                            },
+                            "INDUSTRY": {
+                                "type": "array",
+                                "description": "Specifies the industry of the company.",
+                                "value": ["industry_values"]
+                            },
+                            "NUM_OF_FOLLOWERS": {
+                                "type": "array",
+                                "description": "Specifies the number of followers a company has.",
+                                "value": ["1-50", "51-100", "101-1000", "1001-5000", "5001+"]
+                            },
+                            "FORTUNE": {
+                                "type": "array",
+                                "description": "Specifies the Fortune ranking of the company.",
+                                "value": ["Fortune 50", "Fortune 51-100", "Fortune 101-250", "Fortune 251-500"]
+                            },
+                            "ACCOUNT_ACTIVITIES": {
+                                "type": "array",
+                                "description": "Specifies recent account activities, such as leadership changes or funding events.",
+                                "value": ["Senior leadership changes in last 3 months", "Funding events in past 12 months"]
+                            },
+                            "JOB_OPPORTUNITIES": {
+                                "type": "array",
+                                "description": "Specifies job opportunities available at the company.",
+                                "value": ["Hiring on Linkedin"]
+                            },
+                            "COMPANY_HEADCOUNT_GROWTH": {
+                                "type": "string",
+                                "description": "Specifies the growth of the company's headcount.",
+                                "value": "N/A"
+                            },
+                            "ANNUAL_REVENUE": {
+                                "type": "range",
+                                "description": "Specifies the annual revenue of the company.",
+                                "value": {
+                                "min": "number",
+                                "max": "number",
+                                "currency": ["USD", "AED", "AUD", "BRL", "CAD", "CNY", "DKK", "EUR", "GBP", "HKD", "IDR", "ILS", "INR", "JPY", "NOK", "NZD", "RUB", "SEK", "SGD", "THB", "TRY", "TWD"]
+                                }
+                            },
+                            "DEPARTMENT_HEADCOUNT": {
+                                "type": "range",
+                                "description": "Specifies the headcount of specific departments within the company.",
+                                "value": ["Accounting", "Administrative", "Arts and Design", "Business Development", "Community and Social Services", "Consulting", "Education", "Engineering", "Entrepreneurship", "Finance", "Healthcare Services", "Human Resources", "Information Technology", "Legal", "Marketing", "Media and Communication", "Military and Protective Services", "Operations", "Product Management", "Program and Project Management", "Purchasing", "Quality Assurance", "Real Estate", "Research", "Sales", "Customer Success and Support"]
+                            },
+                            "DEPARTMENT_HEADCOUNT_GROWTH": {
+                                "type": "range",
+                                "description": "Specifies the growth of headcount in specific departments.",
+                                "value": ["Accounting", "Administrative", "Arts and Design", "Business Development", "Community and Social Services", "Consulting", "Education", "Engineering", "Entrepreneurship", "Finance", "Healthcare Services", "Human Resources", "Information Technology", "Legal", "Marketing", "Media and Communication", "Military and Protective Services", "Operations", "Product Management", "Program and Project Management", "Purchasing", "Quality Assurance", "Real Estate", "Research", "Sales", "Customer Success and Support"]
+                            },
+                            "KEYWORD": {
+                                "type": "string",
+                                "description": "Filters based on specific keywords related to the company.",
+                                "value": "List of strings (max length 1)"
+                            }
+                        },
+                        "person_search": {
+                            "CURRENT_COMPANY": {
+                                "description": "Specifies the current company of the person.",
+                                "types": ["in", "not in"],
+                                "value_example": ["Serve Robotics", "serverobotics.com", "https://www.linkedin.com/company/serverobotics"]
+                            },
+                            "CURRENT_TITLE": {
+                                "description": "Specifies the current title of the person.",
+                                "types": ["in", "not in"],
+                                "value_example": ["ceo", "founder", "director"]
+                            },
+                            "PAST_TITLE": {
+                                "description": "Specifies the past titles held by the person.",
+                                "types": ["in", "not in"],
+                                "value_example": ["ceo", "founder", "director"]
+                            },
+                            "COMPANY_HEADQUARTERS": {
+                                "description": "Specifies the headquarters of the person's company.",
+                                "types": ["in", "not in"],
+                                "value_example": "region_values"
+                            },
+                            "COMPANY_HEADCOUNT": {
+                                "description": "Specifies the size of the company based on the number of employees.",
+                                "types": ["in"],
+                                "value_example": ["Self-employed", "1-10", "11-50", "51-200", "201-500", "501-1,000", "1,001-5,000", "5,001-10,000", "10,001+"]
+                            },
+                            "REGION": {
+                                "description": "Specifies the geographical region of the person.",
+                                "types": ["in", "not in"],
+                                "value_example": "region_values"
+                            },
+                            "INDUSTRY": {
+                                "description": "Specifies the industry of the person's company.",
+                                "types": ["in", "not in"],
+                                "value_example": "industry_values"
+                            },
+                            "PROFILE_LANGUAGE": {
+                                "description": "Specifies the language of the person's profile.",
+                                "types": ["in"],
+                                "value_example": ["Arabic", "English", "Spanish", "Portuguese", "Chinese", "French", "Italian", "Russian", "German", "Dutch", "Turkish", "Tagalog", "Polish", "Korean", "Japanese", "Malay", "Norwegian", "Danish", "Romanian", "Swedish", "Bahasa Indonesia", "Czech"]
+                            },
+                            "SENIORITY_LEVEL": {
+                                "description": "Specifies the seniority level of the person.",
+                                "types": ["in", "not in"],
+                                "value_example": ["Owner / Partner", "CXO", "Vice President", "Director", "Experienced Manager", "Entry Level Manager", "Strategic", "Senior", "Entry Level", "In Training"]
+                            },
+                            "YEARS_AT_CURRENT_COMPANY": {
+                                "description": "Specifies the number of years the person has been at their current company.",
+                                "types": ["in"],
+                                "value_example": ["Less than 1 year", "1 to 2 years", "3 to 5 years", "6 to 10 years", "More than 10 years"]
+                            },
+                            "YEARS_IN_CURRENT_POSITION": {
+                                "description": "Specifies the number of years the person has been in their current position.",
+                                "types": ["in"],
+                                "value_example": ["Less than 1 year", "1 to 2 years", "3 to 5 years", "6 to 10 years", "More than 10 years"]
+                            },
+                            "YEARS_OF_EXPERIENCE": {
+                                "description": "Specifies the total years of experience the person has.",
+                                "types": ["in"],
+                                "value_example": ["Less than 1 year", "1 to 2 years", "3 to 5 years", "6 to 10 years", "More than 10 years"]
+                            },
+                            "FIRST_NAME": {
+                                "description": "Specifies the first name of the person.",
+                                "types": ["in"],
+                                "value_example": ["John"]
+                            },
+                            "LAST_NAME": {
+                                "description": "Specifies the last name of the person.",
+                                "types": ["in"],
+                                "value_example": ["Doe"]
+                            },
+                            "FUNCTION": {
+                                "description": "Specifies the function or role of the person.",
+                                "types": ["in", "not in"],
+                                "value_example": ["Accounting", "Administrative", "Arts and Design", "Business Development", "Community and Social Services", "Consulting", "Education", "Engineering", "Entrepreneurship", "Finance", "Healthcare Services", "Human Resources", "Information Technology", "Legal", "Marketing", "Media and Communication", "Military and Protective Services", "Operations", "Product Management", "Program and Project Management", "Purchasing", "Quality Assurance", "Real Estate", "Research", "Sales", "Customer Success and Support"]
+                            },
+                            "PAST_COMPANY": {
+                                "description": "Specifies the past companies the person has worked for.",
+                                "types": ["in", "not in"],
+                                "value_example": ["Serve Robotics", "serverobotics.com", "https://www.linkedin.com/company/serverobotics"]
+                            },
+                            "COMPANY_TYPE": {
+                                "description": "Specifies the type of company the person works for.",
+                                "types": ["in"],
+                                "value_example": ["Public Company", "Privately Held", "Non Profit", "Educational Institution", "Partnership", "Self Employed", "Self Owned", "Government Agency"]
+                            },
+                            "POSTED_ON_LINKEDIN": {
+                                "description": "Specifies if the person has posted on LinkedIn.",
+                                "types": ["N/A"]
+                            },
+                            "RECENTLY_CHANGED_JOBS": {
+                                "description": "Specifies if the person has recently changed jobs.",
+                                "types": ["N/A"]
+                            },
+                            "IN_THE_NEWS": {
+                                "description": "Specifies if the person has been mentioned in the news.",
+                                "types": ["N/A"]
+                            },
+                            "KEYWORD": {
+                                "description": "Filters based on specific keywords related to the person.",
+                                "types": ["in"],
+                                "value_example": "'sales' or 'gtm' or 'marketer'"
+                            }
+                        }
+                    }
+                },
+                "request_parameters": {
+                    "Optional": {
+                        "linkedin_sales_navigator_search_url": "URL of the Sales Navigator Accounts search from the browser",
+                        "filters": "JSON dictionary defining the search criteria as laid out by the Crustdata filter schema.",
+                        "page": "Only valid when filters is not empty. When passing linkedin_sales_navigator_search_url, page should be specified in linkedin_sales_navigator_search_url itself"
+                    }
+                },
+                "examples": {
+                    "example_one": {
+                        "problem": "This query retrieves people from companies with a headcount between 1,001-5,000 or more than 10,001+, with annual revenue between 1 and 500 million USD, excluding those located in the United States, and returns the second page of results",
+                        "curl_solution": "curl --location 'https://api.crustdata.com/screener/company/search' \\\r\n--header 'Content-Type: application/json' \\\r\n--header 'Accept: application/json, text/plain, */*' \\\r\n--header 'Accept-Language: en-US,en;q=0.9' \\\r\n--header 'Authorization: Token $token' \\\r\n--data '{\r\n    \"filters\": [\r\n        {\r\n            \"filter_type\": \"COMPANY_HEADCOUNT\",\r\n            \"type\": \"in\",\r\n            \"value\": [\"10,001+\", \"1,001-5,000\"]\r\n        },\r\n        {\r\n            \"filter_type\": \"ANNUAL_REVENUE\",\r\n            \"type\": \"between\",\r\n            \"value\": {\"min\": 1, \"max\": 500},\r\n            \"sub_filter\": \"USD\"\r\n        },\r\n        {\r\n            \"filter_type\": \"REGION\",\r\n            \"type\": \"not in\",\r\n            \"value\": [\"United States\"]\r\n        }\r\n    ],\r\n    \"page\": 2\r\n}'",
+                        "example_response": "[\r\n  {\r\n    \"name\": \"Suido Kiko Middle East\",\r\n    \"description\": \"Suido Kiko Middle East (SKME) is a Jeddah based engineering and construction company which specializes in providing solutions for the water and waste water  sector in Saudi Arabia and throughout the Middle East and North Africa (MENA) region.\\r\\n\\r\\nThe Company is a joint venture between SBCC and Suido Kiko Kaisah of Japan. The partnership formed in 2004 allowed Suido Kiko to gain access to wider markets and subsequently enhance the technological capabilities of its Saudi counterpart.\\r\\n\\r\\nSKME greatly benefited from the extensive market experience of SBCC in the region and the technical resources of its Japanese co-parent. Suido Kiko Kaisha, Ltd. is one of the largest engineering and construction firms in Japan, in the fields of potable water and waste water treatment. Nonetheless, SBCC had amassed valuable proficiencies from SAWACO, its subsidiary which own and operate serveral desalination plants in Saudi Arabia.\\r\\n\\r\\nLarge-scale desalination typically uses extremely large amounts of energy and expensive infrastructure. However, the huge energy reserves of many MENA states, along with their relative water scarcity, have led to extensive construction of desalination in this part of the globe. SKME is at the forefront of providing consultancy services and turnkey desalination solutions.\\r\\n\\r\\nDesalination may be the first option over waste water reclamation in your desire for drinking water. However, multiple benefits are derived from waste-water treatment and eventual recycling for irrigation and industrial use. SKME is the pioneer in the Membrane Bioreactor (MBR) technology for the treatment of municipal, commercial, and industrial waste water.\\r\\n\\r\\nOver the years, SKME has gone a long way due to the complimentary expertise of its parent companies and environment friendly technology.  With main office in Jeddah, it has branches in Riyadh, Dammam, and Abu Dhabi in UAE.\",\r\n    \"linkedin_company_url\": \"https://www.linkedin.com/company/suido-kiko-middle-east/\",\r\n    \"linkedin_company_id\": \"5044721\",\r\n    \"website\": \"http://www.suikime.com/\",\r\n    \"industry\": \"Industrial Machinery Manufacturing\",\r\n    \"company_type\": \"Partnership\",\r\n    \"founded_year\": 2004,\r\n    \"location\": \"Jiddah, Makkah, Saudi Arabia\",\r\n    \"headquarters\": {\r\n      \"country\": \"Saudi Arabia\",\r\n      \"city\": \"Jeddah\",\r\n      \"postalCode\": \"21453\",\r\n      \"line2\": \"PO Box 11286\",\r\n      \"line1\": \"Al Khayal St., Al Rawdah District\"\r\n    },\r\n    \"employee_count\": 95,\r\n    \"employee_count_range\": \"201-500\",\r\n    \"employee_growth_percentages\": [\r\n      {\r\n        \"timespan\": \"SIX_MONTHS\",\r\n        \"percentage\": 0\r\n      },\r\n      {\r\n        \"timespan\": \"YEAR\",\r\n        \"percentage\": -3\r\n      },\r\n      {\r\n        \"timespan\": \"TWO_YEAR\",\r\n        \"percentage\": -7\r\n      }\r\n    ],\r\n    \"specialties\": [\r\n      \"Sea Water RO\",\r\n      \"Brackish Water RO\",\r\n      \"Waste Water Treatment\",\r\n      \"Operations and Maintenance of RO Plant\",\r\n      \"Potable Water Network\",\r\n      \"Sewage Water Network\",\r\n      \"Containerized Solution\"\r\n    ],\r\n    \"revenue_range\": {\r\n      \"estimatedMinRevenue\": {\r\n        \"amount\": 20,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      },\r\n      \"estimatedMaxRevenue\": {\r\n        \"amount\": 50,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      }\r\n    },\r\n    \"decision_makers_count\": \"3\",\r\n    \"logo_urls\": {\r\n      \"200x200\": \"https://media.licdn.com/dms/image/C510BAQHlHHSk13Trzg/company-logo_200_200/0/1631326881937?e=1732147200&v=beta&t=-MGxdWttzuaD58whYpVYOftwkEn6EvrnXJvtI1QVucI\",\r\n      \"100x100\": \"https://media.licdn.com/dms/image/C510BAQHlHHSk13Trzg/company-logo_100_100/0/1631326881937?e=1732147200&v=beta&t=5feNhZBq7_Xo4jHd9Vn7zQetSgSuQVD55-A1JiSssAo\",\r\n      \"400x400\": \"https://media.licdn.com/dms/image/C510BAQHlHHSk13Trzg/company-logo_400_400/0/1631326881937?e=1732147200&v=beta&t=y5JWOw7y1ZMmh5M6-8eeCdw-RMdyeAw9ZUGLq14-n5o\"\r\n    }\r\n  },\r\n  {\r\n    \"name\": \"Huawei Digital Power Latinoamérica \",\r\n    \"description\": \"Fundada en junio de 2021, Huawei Digital Power Technologies Co., Ltd. es un proveedor mundial de productos y soluciones de energía digital. Estamos comprometidos a integrar tecnologías digitales y de electrónica de potencia, desarrollar energía limpia y permitir la digitalización de energía para impulsar la revolución energética y lograr un futuro mejor y más ecológico. \\n\\nCon soluciones integradas de energía inteligente, trabajamos con socios para construir edificios y campus con bajo contenido de carbono, promoviendo el cambio hacia ciudades con bajo contenido de carbono. \\n\\nCon aproximadamente 6000 empleados, Huawei Digital Power atiende a un tercio de la población mundial en más de 170 países y regiones.\\n\",\r\n    \"linkedin_company_url\": \"https://www.linkedin.com/company/huaweidigitalpowerlatam/\",\r\n    \"linkedin_company_id\": \"65807145\",\r\n    \"website\": \"https://digitalpower.huawei.com/\",\r\n    \"industry\": \"Renewable Energy Semiconductor Manufacturing\",\r\n    \"company_type\": \"Privately Held\",\r\n    \"founded_year\": 2021,\r\n    \"location\": \"Mexico City, Mexico\",\r\n    \"headquarters\": {\r\n      \"country\": \"Mexico\",\r\n      \"city\": \"mexico city\"\r\n    },\r\n    \"employee_count\": 92,\r\n    \"employee_count_range\": \"10001+\",\r\n    \"employee_growth_percentages\": [\r\n      {\r\n        \"timespan\": \"SIX_MONTHS\",\r\n        \"percentage\": 17\r\n      },\r\n      {\r\n        \"timespan\": \"YEAR\",\r\n        \"percentage\": 22\r\n      },\r\n      {\r\n        \"timespan\": \"TWO_YEAR\",\r\n        \"percentage\": 64\r\n      }\r\n    ],\r\n    \"specialties\": null,\r\n    \"revenue_range\": {\r\n      \"estimatedMinRevenue\": {\r\n        \"amount\": 1,\r\n        \"unit\": \"BILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      },\r\n      \"estimatedMaxRevenue\": {\r\n        \"amount\": 1000,\r\n        \"unit\": \"BILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      }\r\n    },\r\n    \"decision_makers_count\": \"14\",\r\n    \"logo_urls\": {\r\n      \"200x200\": \"https://media.licdn.com/dms/image/C4E0BAQGQti7CNwP6DQ/company-logo_200_200/0/1630654291715?e=1732147200&v=beta&t=U1O1leCuIL0sKx52E0Mel4ZRqNkb2r3VpC3s2U7hF-U\",\r\n      \"100x100\": \"https://media.licdn.com/dms/image/C4E0BAQGQti7CNwP6DQ/company-logo_100_100/0/1630654291715?e=1732147200&v=beta&t=8i5zBJO1eU_5wxZNGgSh06mkbH0FDFiMLAjwXRQw4-w\",\r\n      \"400x400\": \"https://media.licdn.com/dms/image/C4E0BAQGQti7CNwP6DQ/company-logo_400_400/0/1630654291715?e=1732147200&v=beta&t=fFGGrp-ILjIQv0KYs4lEtlS0Oq5PnCdm5I_G7q8x7lY\"\r\n    }\r\n  },\r\n  {\r\n    \"name\": \"Helm de México \",\r\n    \"description\": \"HELM de México, S.A., es una compañía de capital alemán, fundada en 1966 en la Ciudad de México, formando parte de una organización internacional con más de 100 oficinas en todo el mundo, a través de las cuales se realizan actividades de comercialización de materias primas desde hace más de 115 años.\",\r\n    \"linkedin_company_url\": \"https://www.linkedin.com/company/helm-de-m-xico/\",\r\n    \"linkedin_company_id\": \"64633354\",\r\n    \"website\": \"https://www.helmmexico.com/\",\r\n    \"industry\": \"Pharmaceutical Manufacturing\",\r\n    \"company_type\": \"Privately Held\",\r\n    \"founded_year\": 1966,\r\n    \"location\": \"Naucalpan de Juárez, México, Mexico\",\r\n    \"headquarters\": {\r\n      \"country\": \"Mexico\",\r\n      \"geographicArea\": \"Mexico\",\r\n      \"city\": \"Naucalpan\",\r\n      \"postalCode\": \"53390\",\r\n      \"line2\": \"N°5 Torre A, Piso 17 Lomas de Sotelo\",\r\n      \"line1\": \"Boulevard Manuel Ávila Camacho\"\r\n    },\r\n    \"employee_count\": 146,\r\n    \"employee_count_range\": \"201-500\",\r\n    \"employee_growth_percentages\": [\r\n      {\r\n        \"timespan\": \"SIX_MONTHS\",\r\n        \"percentage\": 0\r\n      },\r\n      {\r\n        \"timespan\": \"YEAR\",\r\n        \"percentage\": 2\r\n      },\r\n      {\r\n        \"timespan\": \"TWO_YEAR\",\r\n        \"percentage\": 8\r\n      }\r\n    ],\r\n    \"specialties\": null,\r\n    \"revenue_range\": {\r\n      \"estimatedMinRevenue\": {\r\n        \"amount\": 20,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      },\r\n      \"estimatedMaxRevenue\": {\r\n        \"amount\": 50,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      }\r\n    },\r\n    \"decision_makers_count\": \"10\",\r\n    \"logo_urls\": {\r\n      \"200x200\": \"https://media.licdn.com/dms/image/v2/D560BAQEHWQ4C1j2iNA/company-logo_200_200/company-logo_200_200/0/1688248096793?e=1732147200&v=beta&t=oW7XNA4gWhjCi-MTDBiQ5ACuntsa-0yoepA2iePRRJM\",\r\n      \"100x100\": \"https://media.licdn.com/dms/image/v2/D560BAQEHWQ4C1j2iNA/company-logo_100_100/company-logo_100_100/0/1688248096793?e=1732147200&v=beta&t=USIg-T6ROl2AClkzfBsTr2gpjV1OvuDKkmxdOaejsO8\",\r\n      \"400x400\": \"https://media.licdn.com/dms/image/v2/D560BAQEHWQ4C1j2iNA/company-logo_400_400/company-logo_400_400/0/1688248096793?e=1732147200&v=beta&t=bLGlo9R-mn0NtYQHEfrRBG78D3QCkqR-sfT90hr0NTA\"\r\n    }\r\n  },\r\n  {\r\n    \"name\": \"Festo México\",\r\n    \"description\": \"Festo es líder mundial en  automatización y capacitación industrial. Nuestras tecnologías de accionamiento eléctrico y neumático son sinónimo de innovación en la industria. Ofrecemos desde productos individuales hasta soluciones completas a la medida de sus necesidades.\\r\\n\\r\\nCon 17,800 empleados y 61 compañías a nivel mundial, Festo cuenta con el talento y la infraestructura para mantener el mundo en movimiento.\",\r\n    \"linkedin_company_url\": \"https://www.linkedin.com/company/festo-mexico/\",\r\n    \"linkedin_company_id\": \"10510619\",\r\n    \"website\": \"http://www.festo.com.mx\",\r\n    \"industry\": \"Automation Machinery Manufacturing\",\r\n    \"company_type\": \"Privately Held\",\r\n    \"founded_year\": 1974,\r\n    \"location\": \"Tlalnepantla, México, Mexico\",\r\n    \"headquarters\": {\r\n      \"country\": \"Mexico\",\r\n      \"geographicArea\": \"Estado de México\",\r\n      \"city\": \"Tlalnepantla\",\r\n      \"postalCode\": \"54020\",\r\n      \"line1\": \"Av. Ceylán 3, Tequesquináhuac,\"\r\n    },\r\n    \"employee_count\": 196,\r\n    \"employee_count_range\": \"201-500\",\r\n    \"employee_growth_percentages\": [\r\n      {\r\n        \"timespan\": \"SIX_MONTHS\",\r\n        \"percentage\": 2\r\n      },\r\n      {\r\n        \"timespan\": \"YEAR\",\r\n        \"percentage\": 1\r\n      },\r\n      {\r\n        \"timespan\": \"TWO_YEAR\",\r\n        \"percentage\": 10\r\n      }\r\n    ],\r\n    \"specialties\": [\r\n      \"Pneumatic Automation\",\r\n      \"Electric Automation\",\r\n      \"Industrial Automation\"\r\n    ],\r\n    \"revenue_range\": {\r\n      \"estimatedMinRevenue\": {\r\n        \"amount\": 50,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      },\r\n      \"estimatedMaxRevenue\": {\r\n        \"amount\": 100,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      }\r\n    },\r\n    \"decision_makers_count\": \"8\",\r\n    \"logo_urls\": {\r\n      \"200x200\": \"https://media.licdn.com/dms/image/v2/D4E0BAQFpx167TsbhvA/company-logo_200_200/company-logo_200_200/0/1694191794719/festo_mexico_logo?e=1732147200&v=beta&t=P3Y8fZdgCS3wyQkwmzH9zYop9zHgT5ZbBAVF20NSzHE\",\r\n      \"100x100\": \"https://media.licdn.com/dms/image/v2/D4E0BAQFpx167TsbhvA/company-logo_100_100/company-logo_100_100/0/1694191794719/festo_mexico_logo?e=1732147200&v=beta&t=rusRsEXAYOl4z1LfAplKWNpxJ6hmh744_KT9YZPtoCY\",\r\n      \"400x400\": \"https://media.licdn.com/dms/image/v2/D4E0BAQFpx167TsbhvA/company-logo_400_400/company-logo_400_400/0/1694191794719/festo_mexico_logo?e=1732147200&v=beta&t=j8Ex53A4PzSWwUZ5NQ4OIeiTidLzFKcYTs4wLTG-5-I\"\r\n    }\r\n  },\r\n  {\r\n    \"name\": \"LG México\",\r\n    \"description\": \"LG Electronics es un innovador global en tecnología y electrónica de consumo con presencia en casi todos los países y una fuerza laboral internacional de más de 75,000 personas. Las cuatro compañías de LG: Home Appliance & Air Solution, Home Entertainment, Vehicle component Solutions y Business Solutions, se combinaron para ventas globales de más de 63 mil millones de dólares en 2021. LG es un fabricante líder de productos comerciales y de consumo que van desde televisores, electrodomésticos, soluciones de aire acondicionado, monitores, robots de servicio, componentes automotrices y sus marcas premium LG SIGNATURE e inteligente LG ThinQ son nombres familiares en todo el mundo. \",\r\n    \"linkedin_company_url\": \"https://www.linkedin.com/company/lgmexico/\",\r\n    \"linkedin_company_id\": \"79548016\",\r\n    \"website\": \"https://www.lgcorp.com/\",\r\n    \"industry\": \"Consumer Electronics\",\r\n    \"company_type\": \"Public Company\",\r\n    \"founded_year\": null,\r\n    \"location\": \"Tlalnepantla, México, Mexico\",\r\n    \"headquarters\": {\r\n      \"country\": \"Mexico\",\r\n      \"geographicArea\": \"México\",\r\n      \"city\": \"Tlalnepantla de Baz\",\r\n      \"postalCode\": \"54033\",\r\n      \"line1\": \"Avenida Sor Juana Inés de la Cruz 555\"\r\n    },\r\n    \"employee_count\": 151,\r\n    \"employee_count_range\": \"201-500\",\r\n    \"employee_growth_percentages\": [\r\n      {\r\n        \"timespan\": \"SIX_MONTHS\",\r\n        \"percentage\": 26\r\n      },\r\n      {\r\n        \"timespan\": \"YEAR\",\r\n        \"percentage\": 65\r\n      },\r\n      {\r\n        \"timespan\": \"TWO_YEAR\",\r\n        \"percentage\": 122\r\n      }\r\n    ],\r\n    \"specialties\": null,\r\n    \"revenue_range\": {\r\n      \"estimatedMinRevenue\": {\r\n        \"amount\": 20,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      },\r\n      \"estimatedMaxRevenue\": {\r\n        \"amount\": 50,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      }\r\n    },\r\n    \"decision_makers_count\": \"8\",\r\n    \"logo_urls\": {\r\n      \"200x200\": \"https://media.licdn.com/dms/image/v2/D560BAQEhlGiZaRx1RQ/company-logo_200_200/company-logo_200_200/0/1692632872350?e=1732147200&v=beta&t=BLPfb5nn5owlVrqq6JSOsX50uO9Kqb1Bdpsx6l82Ay8\",\r\n      \"100x100\": \"https://media.licdn.com/dms/image/v2/D560BAQEhlGiZaRx1RQ/company-logo_100_100/company-logo_100_100/0/1692632872350?e=1732147200&v=beta&t=hcvnIumAFAtMcwILDZzkpmxs8KG3NH-P8CH4IZrhkbk\",\r\n      \"400x400\": \"https://media.licdn.com/dms/image/v2/D560BAQEhlGiZaRx1RQ/company-logo_400_400/company-logo_400_400/0/1692632872350?e=1732147200&v=beta&t=URVsLcv4qsfRLmU8l5D53975BxQD0qerEH2z6--w-bQ\"\r\n    }\r\n  },\r\n  {\r\n    \"name\": \"Wonder Brands\",\r\n    \"description\": \"We are LATAM’S next-gen brands powerhouse. \\n\\nNos asociamos con empresas y emprendedores exitosos para desarrollar las mejores marcas online, tanto en México como en toda Latinoamérica.\\n\\nNuestra #visión es ser el grupo de marcas digitales más exitosos de LATAM al desarrollar los mejores productos para nuestros clientes a los mejores precios. \\n\\nNuestras marcas son líderes de sus categorías porque nuestros clientes son el corazón de Wonder Brands.\",\r\n    \"linkedin_company_url\": \"https://www.linkedin.com/company/wonderbrands/\",\r\n    \"linkedin_company_id\": \"70927493\",\r\n    \"website\": \"http://wonderbrands.co\",\r\n    \"industry\": \"Manufacturing\",\r\n    \"company_type\": \"Privately Held\",\r\n    \"founded_year\": 2020,\r\n    \"location\": \"Mexico City, Mexico\",\r\n    \"headquarters\": {\r\n      \"country\": \"Mexico\",\r\n      \"city\": \"Mexico City\"\r\n    },\r\n    \"employee_count\": 98,\r\n    \"employee_count_range\": \"11-50\",\r\n    \"employee_growth_percentages\": [\r\n      {\r\n        \"timespan\": \"SIX_MONTHS\",\r\n        \"percentage\": 10\r\n      },\r\n      {\r\n        \"timespan\": \"YEAR\",\r\n        \"percentage\": 24\r\n      },\r\n      {\r\n        \"timespan\": \"TWO_YEAR\",\r\n        \"percentage\": 25\r\n      }\r\n    ],\r\n    \"specialties\": null,\r\n    \"revenue_range\": {\r\n      \"estimatedMinRevenue\": {\r\n        \"amount\": 2.5,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      },\r\n      \"estimatedMaxRevenue\": {\r\n        \"amount\": 5,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      }\r\n    },\r\n    \"decision_makers_count\": \"13\",\r\n    \"logo_urls\": {\r\n      \"200x200\": \"https://media.licdn.com/dms/image/v2/C4D0BAQFHPbTlQ9ag9w/company-logo_200_200/company-logo_200_200/0/1668108860652?e=1732147200&v=beta&t=-3XjOhmw3mtqyS1Ax-4EubvTffwlaiUx-9UXpktr73k\",\r\n      \"100x100\": \"https://media.licdn.com/dms/image/v2/C4D0BAQFHPbTlQ9ag9w/company-logo_100_100/company-logo_100_100/0/1668108860652?e=1732147200&v=beta&t=RbQwARWQ-mxMD_IDhIHCUz4oS69IBdLyf_KnXY7vYVY\",\r\n      \"400x400\": \"https://media.licdn.com/dms/image/v2/C4D0BAQFHPbTlQ9ag9w/company-logo_400_400/company-logo_400_400/0/1668108860652?e=1732147200&v=beta&t=0f_fBMtaO6-Q16WACXBTrxj3l5S7s3oE-jrK9AYljAs\"\r\n    }\r\n  },\r\n  {\r\n    \"name\": \"Mitsubishi Motors de México\",\r\n    \"description\": \"Mitsubishi Motors Corporation es una compañía global basada en Tokyo, Japón. \\nSu división automotriz ofrece una competitiva gama en los segmentos de SUVs y Pickups, así como en el creciente segmento de vehículos híbridos “plug-in”. La compañía lanzó el modelo i-MiEV – el primer vehículo eléctrico producido masivamente en 2009, seguido por la OUTLANDER PHEV en 2013 – un híbrido “plug-in” que hoy es lider en Japón y Europa. Mitsubishi Motors emplea a 30,000 personas y tiene presencia global con plantas en Japón, Tailandia, China, Indonesia, Filipinas y Rusia. Modelos tales como MONTERO SPORT, L200 y OUTLANDER juegan un papel preponderante en las ventas de la marca. El volumen de ventas de Mitsubishi Motors en el año fiscal 2018 fue de 1,244,000 unidades, y las ventas netas para ese mismo año fiscal ascendió a 2.51 trillones de yenes. Mitsubishi Motors cotiza en la Tokyo Stock Exchange.\\n\\n\",\r\n    \"linkedin_company_url\": \"https://www.linkedin.com/company/mitsubishimex/\",\r\n    \"linkedin_company_id\": \"37225540\",\r\n    \"website\": \"https://www.mitsubishi-motors.mx/\",\r\n    \"industry\": \"Automotive\",\r\n    \"company_type\": \"Privately Held\",\r\n    \"founded_year\": null,\r\n    \"location\": \"Coatzacoalcos, Veracruz, Mexico\",\r\n    \"headquarters\": {\r\n      \"country\": \"Mexico\",\r\n      \"geographicArea\": \"CDMX\",\r\n      \"city\": \"MIGUEL HIDALGO\",\r\n      \"postalCode\": \"11560\",\r\n      \"line2\": \"POLANCO CHAPULTEPEC\",\r\n      \"line1\": \"11560\"\r\n    },\r\n    \"employee_count\": 173,\r\n    \"employee_count_range\": \"51-200\",\r\n    \"employee_growth_percentages\": [\r\n      {\r\n        \"timespan\": \"SIX_MONTHS\",\r\n        \"percentage\": 10\r\n      },\r\n      {\r\n        \"timespan\": \"YEAR\",\r\n        \"percentage\": 34\r\n      },\r\n      {\r\n        \"timespan\": \"TWO_YEAR\",\r\n        \"percentage\": 96\r\n      }\r\n    ],\r\n    \"specialties\": null,\r\n    \"revenue_range\": {\r\n      \"estimatedMinRevenue\": {\r\n        \"amount\": 10,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      },\r\n      \"estimatedMaxRevenue\": {\r\n        \"amount\": 20,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      }\r\n    },\r\n    \"decision_makers_count\": \"8\",\r\n    \"logo_urls\": {\r\n      \"200x200\": \"https://media.licdn.com/dms/image/D560BAQGloBWAdWUU4A/company-logo_200_200/0/1709999670195/mitsubishimex_logo?e=1732147200&v=beta&t=pWbG_w84csZjLo-Y8AdhYrN0S_xoTdU2DZ6Zz9rGlas\",\r\n      \"100x100\": \"https://media.licdn.com/dms/image/D560BAQGloBWAdWUU4A/company-logo_100_100/0/1709999670195/mitsubishimex_logo?e=1732147200&v=beta&t=uLaFltIRvFAStts3NzQBf4J0rsNCY7UG7Ex9DTwKvu4\",\r\n      \"400x400\": \"https://media.licdn.com/dms/image/D560BAQGloBWAdWUU4A/company-logo_400_400/0/1709999670195/mitsubishimex_logo?e=1732147200&v=beta&t=rqcG8tutWxDiQyeM0CqdvzAKRauu3gOMsbt9LXgfHFU\"\r\n    }\r\n  },\r\n  {\r\n    \"name\": \"Laboratorios Serral\",\r\n    \"description\": \"Diferenciación en el Mercado de Genéricos desarrollando Marcas con Valor. \\n\\nTrabajamos arduamente para conformar una exitosa compañía farmacéutica en el ramo de genéricos, capaz de enfrentar los retos del presente.\\n\\nEstamos posicionados dentro de los primeros cinco laboratorios de México en la fabricación y distribución de medicamentos genéricos.\",\r\n    \"linkedin_company_url\": \"https://www.linkedin.com/company/laboratorios-serral/\",\r\n    \"linkedin_company_id\": \"40778864\",\r\n    \"website\": \"http://www.serral.com.mx\",\r\n    \"industry\": \"Pharmaceutical Manufacturing\",\r\n    \"company_type\": \"Public Company\",\r\n    \"founded_year\": 1948,\r\n    \"location\": \"Benito Juárez, Mexico City, Mexico\",\r\n    \"headquarters\": {\r\n      \"country\": \"Mexico\",\r\n      \"geographicArea\": \"Distrito Federal\",\r\n      \"city\": \"Del Valle Centro\",\r\n      \"postalCode\": \"03100\",\r\n      \"line2\": \"1427\",\r\n      \"line1\": \"Adolfo Prieto\"\r\n    },\r\n    \"employee_count\": 83,\r\n    \"employee_count_range\": \"1001-5000\",\r\n    \"employee_growth_percentages\": [\r\n      {\r\n        \"timespan\": \"SIX_MONTHS\",\r\n        \"percentage\": 5\r\n      },\r\n      {\r\n        \"timespan\": \"YEAR\",\r\n        \"percentage\": 5\r\n      },\r\n      {\r\n        \"timespan\": \"TWO_YEAR\",\r\n        \"percentage\": 18\r\n      }\r\n    ],\r\n    \"specialties\": [\r\n      \"antihistamínicos\",\r\n      \"Analgésicos/Antiinflamatorios\",\r\n      \"Cardiovasculares\",\r\n      \"Antibióticos\",\r\n      \"Dermatológicos\",\r\n      \"Salud Sexual\",\r\n      \"Gastroenterológicos\",\r\n      \"Vitamínicos\",\r\n      \"Antimicóticos\",\r\n      \"Hormonales\"\r\n    ],\r\n    \"revenue_range\": {\r\n      \"estimatedMinRevenue\": {\r\n        \"amount\": 500,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      },\r\n      \"estimatedMaxRevenue\": {\r\n        \"amount\": 1,\r\n        \"unit\": \"BILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      }\r\n    },\r\n    \"decision_makers_count\": \"3\",\r\n    \"logo_urls\": {\r\n      \"200x200\": \"https://media.licdn.com/dms/image/v2/C560BAQH3IM7W033U3g/company-logo_200_200/company-logo_200_200/0/1630670672488/laboratorios_serral_logo?e=1732147200&v=beta&t=37Ypx0lF7YMJ6kbm1n2-GM06eJD2tJcgdOZQcCU12Nk\",\r\n      \"100x100\": \"https://media.licdn.com/dms/image/v2/C560BAQH3IM7W033U3g/company-logo_100_100/company-logo_100_100/0/1630670672488/laboratorios_serral_logo?e=1732147200&v=beta&t=Vq-3zNYa-WFwtPy5KiK1YOSySLx-X9ZngQ1BA-aW-BU\",\r\n      \"400x400\": \"https://media.licdn.com/dms/image/v2/C560BAQH3IM7W033U3g/company-logo_400_400/company-logo_400_400/0/1630670672488/laboratorios_serral_logo?e=1732147200&v=beta&t=gsbKb2_liRFuMGoRkcw7t3mcwJb-WAbjHS4WVprVJ3w\"\r\n    }\r\n  },\r\n  {\r\n    \"name\": \"Talento Stellantis México\",\r\n    \"description\": \"LinkedIn Oficial del área de Atracción de Talento Stellantis México \\n\\nImpulsados por nuestra diversidad, lideramos la forma en la que se mueve el mundo.\\n\\n\\nEn Stellantis, creemos que la experiencia que creamos hoy define el camino para las futuras generaciones. \\nDetrás de cada automóvil icónico y producto innovador, hay un equipo excepcional de individuos talentosos que hacen que todo sea posible. Nos enorgullece trabajar con algunas de las marcas de automóviles más emblemáticas del mundo y ofrecer las tecnologías más avanzadas del mercado.\\n\\nNuestra visión es fortalecer la diversidad, igualdad de oportunidades e inclusión como una fortaleza que influye en el desarrollo de nuevas ideas y soluciones. Nuestra estrategia se basa en empoderar la diversidad a través de la meritocracia, respetar las tradiciones y contextos locales y encontrar puntos en común a nivel global.\\n\\n\\n\",\r\n    \"linkedin_company_url\": \"https://www.linkedin.com/company/talento-stellantismx/\",\r\n    \"linkedin_company_id\": \"3361792\",\r\n    \"website\": null,\r\n    \"industry\": \"Automotive\",\r\n    \"company_type\": \"Self-Employed\",\r\n    \"founded_year\": 1938,\r\n    \"location\": null,\r\n    \"headquarters\": {},\r\n    \"employee_count\": 68,\r\n    \"employee_count_range\": \"10001+\",\r\n    \"employee_growth_percentages\": [\r\n      {\r\n        \"timespan\": \"SIX_MONTHS\",\r\n        \"percentage\": 19\r\n      },\r\n      {\r\n        \"timespan\": \"YEAR\",\r\n        \"percentage\": 41\r\n      },\r\n      {\r\n        \"timespan\": \"TWO_YEAR\",\r\n        \"percentage\": 44\r\n      }\r\n    ],\r\n    \"specialties\": [\r\n      \"Manufactura\",\r\n      \"Ingeniería\",\r\n      \"Automotores\",\r\n      \"Automotriz\"\r\n    ],\r\n    \"revenue_range\": {\r\n      \"estimatedMinRevenue\": {\r\n        \"amount\": 1,\r\n        \"unit\": \"BILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      },\r\n      \"estimatedMaxRevenue\": {\r\n        \"amount\": 1000,\r\n        \"unit\": \"BILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      }\r\n    },\r\n    \"decision_makers_count\": \"3\",\r\n    \"logo_urls\": {\r\n      \"200x200\": \"https://media.licdn.com/dms/image/v2/D4E0BAQFEhIi_bN60cg/company-logo_200_200/company-logo_200_200/0/1696893164005/talento_stellantismx_logo?e=1732147200&v=beta&t=_V-NPJ4MBdk3b2ph5lNiKoi1W78_a_FE3uMaKOGN02g\",\r\n      \"100x100\": \"https://media.licdn.com/dms/image/v2/D4E0BAQFEhIi_bN60cg/company-logo_100_100/company-logo_100_100/0/1696893164005/talento_stellantismx_logo?e=1732147200&v=beta&t=w7Bf9yb2G1jA6lFYY_bV9c31Q2PUeu4oeWR4Sevk1cw\",\r\n      \"400x400\": \"https://media.licdn.com/dms/image/v2/D4E0BAQFEhIi_bN60cg/company-logo_400_400/company-logo_400_400/0/1696893164005/talento_stellantismx_logo?e=1732147200&v=beta&t=_dWqYcqsTsrdemxXh273TkNcY5Pp3w8Hunvrgckffgo\"\r\n    }\r\n  },\r\n  {\r\n    \"name\": \"BacherZoppi\",\r\n    \"description\": \"+20 years of experience In Sales Force Management\\nMore than 1,200 sales professionals\\nLeading CMSO in the Mexican market\\n\",\r\n    \"linkedin_company_url\": \"https://www.linkedin.com/company/bacherzoppi/\",\r\n    \"linkedin_company_id\": \"223384\",\r\n    \"website\": \"http://www.bacherzoppi.com.mx\",\r\n    \"industry\": \"Pharmaceutical Manufacturing\",\r\n    \"company_type\": \"Privately Held\",\r\n    \"founded_year\": 1996,\r\n    \"location\": \"Benito Juárez, Mexico City, Mexico\",\r\n    \"headquarters\": {\r\n      \"country\": \"Mexico\",\r\n      \"geographicArea\": \"CDMX\",\r\n      \"city\": \"Ciudad de México\",\r\n      \"postalCode\": \"03100\",\r\n      \"line1\": \"Insurgentes Sur 800 Piso 16, Oficina 2, Col. Del Valle. Del. Benito Juárez\"\r\n    },\r\n    \"employee_count\": 169,\r\n    \"employee_count_range\": \"1001-5000\",\r\n    \"employee_growth_percentages\": [\r\n      {\r\n        \"timespan\": \"SIX_MONTHS\",\r\n        \"percentage\": 2\r\n      },\r\n      {\r\n        \"timespan\": \"YEAR\",\r\n        \"percentage\": 1\r\n      },\r\n      {\r\n        \"timespan\": \"TWO_YEAR\",\r\n        \"percentage\": 4\r\n      }\r\n    ],\r\n    \"specialties\": [\r\n      \"Atracción de Talento\",\r\n      \"Staffing\",\r\n      \"Gerenciamiento\",\r\n      \"Talent Pool\",\r\n      \"Administración Fuerzas de Venta\",\r\n      \"Representantes Médicos\",\r\n      \"Comercial Pharma\",\r\n      \"Capacitación\",\r\n      \"Consultoría\",\r\n      \"Inteligencia de Negocios\",\r\n      \"Marketing\",\r\n      \"Gestión de Capital Humano\",\r\n      \"Especialización\",\r\n      \"Salud\",\r\n      \"Automatización\"\r\n    ],\r\n    \"revenue_range\": {\r\n      \"estimatedMinRevenue\": {\r\n        \"amount\": 500,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      },\r\n      \"estimatedMaxRevenue\": {\r\n        \"amount\": 1,\r\n        \"unit\": \"BILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      }\r\n    },\r\n    \"decision_makers_count\": \"8\",\r\n    \"logo_urls\": {\r\n      \"200x200\": \"https://media.licdn.com/dms/image/C4E0BAQGHOUdnTdLhwg/company-logo_200_200/0/1647365466103/bacherzoppi_logo?e=1732147200&v=beta&t=WlOQ7YfOvrNnG7XGQL2njDKy4RsYKBhN8pg-idBOLQA\",\r\n      \"100x100\": \"https://media.licdn.com/dms/image/C4E0BAQGHOUdnTdLhwg/company-logo_100_100/0/1647365466103/bacherzoppi_logo?e=1732147200&v=beta&t=fMUPfh8P0bfDsNcnK4jYWfweK5-CmjYjphv3f6OV74g\",\r\n      \"400x400\": \"https://media.licdn.com/dms/image/C4E0BAQGHOUdnTdLhwg/company-logo_400_400/0/1647365466103/bacherzoppi_logo?e=1732147200&v=beta&t=LOTDZ3OSs0arATCMeOtenNC5VoUmAMVeh4bQJ6NNrc0\"\r\n    }\r\n  },\r\n  {\r\n    \"name\": \"Adium México\",\r\n    \"description\": \"Somos una empresa farmacéutica, dedicada al desarrollo, producción y comercialización de productos de uso humano, brindándole acceso a médicos y pacientes a tratamientos innovadores y de calidad a través de un equipo humanos altamente motivado e identificado con la misma. Consulte a su médico. Permiso: 213300201B0441\",\r\n    \"linkedin_company_url\": \"https://www.linkedin.com/company/adium-m%C3%A9xico/\",\r\n    \"linkedin_company_id\": \"103551395\",\r\n    \"website\": null,\r\n    \"industry\": \"Pharmaceutical Manufacturing\",\r\n    \"company_type\": \"Privately Held\",\r\n    \"founded_year\": null,\r\n    \"location\": \"Álvaro Obregón, Mexico City, Mexico\",\r\n    \"headquarters\": {\r\n      \"country\": \"Mexico\",\r\n      \"geographicArea\": \"CDMX\",\r\n      \"city\": \"Ciudad de México\",\r\n      \"postalCode\": \"01219\"\r\n    },\r\n    \"employee_count\": 144,\r\n    \"employee_count_range\": \"501-1000\",\r\n    \"employee_growth_percentages\": [\r\n      {\r\n        \"timespan\": \"SIX_MONTHS\",\r\n        \"percentage\": 22\r\n      },\r\n      {\r\n        \"timespan\": \"YEAR\",\r\n        \"percentage\": 39\r\n      },\r\n      {\r\n        \"timespan\": \"TWO_YEAR\",\r\n        \"percentage\": 89\r\n      }\r\n    ],\r\n    \"specialties\": null,\r\n    \"revenue_range\": {\r\n      \"estimatedMinRevenue\": {\r\n        \"amount\": 100,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      },\r\n      \"estimatedMaxRevenue\": {\r\n        \"amount\": 500,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      }\r\n    },\r\n    \"decision_makers_count\": \"7\",\r\n    \"logo_urls\": {\r\n      \"200x200\": \"https://media.licdn.com/dms/image/v2/D4E0BAQEBrPI80s0rVg/company-logo_200_200/company-logo_200_200/0/1714962686459/adium_mxico_logo?e=1732147200&v=beta&t=Q0jGN2J3ovzfmH9UH4bFDEnS6Zsb5NC-NsZIiEbykMA\",\r\n      \"100x100\": \"https://media.licdn.com/dms/image/v2/D4E0BAQEBrPI80s0rVg/company-logo_100_100/company-logo_100_100/0/1714962686459/adium_mxico_logo?e=1732147200&v=beta&t=vp9ggz2O4tlGWmC3BiRNq6bVa0jly5I8aueULcMpvBg\",\r\n      \"400x400\": \"https://media.licdn.com/dms/image/v2/D4E0BAQEBrPI80s0rVg/company-logo_400_400/company-logo_400_400/0/1714962686459/adium_mxico_logo?e=1732147200&v=beta&t=oWycYY7DI_DXf5MiVs_dQEQ4N2iDcpwlZhDsICbZ_sc\"\r\n    }\r\n  },\r\n  {\r\n    \"name\": \"Fresenius Kabi México\",\r\n    \"description\": \"Somos una empresa mundial del cuidado de la salud que se especializa en medicamentos y tecnologías de infusión, transfusión y nutrición clínica. Nuestros productos y servicios se utilizan para ayudar al cuidado de los pacientes críticos y crónicos.\\n\\nSi desea comunicar un acontecimiento adverso, puede hacerlo ingresando a https://www.fresenius-kabi.com/mx/sistema-de-vigilancia , o enviar un correo a\\nfarmacovigilancia.fkm@fresenius-kabi.com\\n----\\nPolítica de privacidad:\\nhttps://www.fresenius-kabi.com/mx/privacy-policy\",\r\n    \"linkedin_company_url\": \"https://www.linkedin.com/company/freseniuskabim%C3%A9xico/\",\r\n    \"linkedin_company_id\": \"16240157\",\r\n    \"website\": \"https://www.fresenius-kabi.com/mx/\",\r\n    \"industry\": \"Pharmaceutical Manufacturing\",\r\n    \"company_type\": \"Public Company\",\r\n    \"founded_year\": null,\r\n    \"location\": \"Ciudad Granja, Jalisco, Mexico\",\r\n    \"headquarters\": {\r\n      \"country\": \"Mexico\",\r\n      \"geographicArea\": \"Jalisco\",\r\n      \"city\": \"Guadalajara\",\r\n      \"postalCode\": \"45010\"\r\n    },\r\n    \"employee_count\": 161,\r\n    \"employee_count_range\": \"501-1000\",\r\n    \"employee_growth_percentages\": [\r\n      {\r\n        \"timespan\": \"SIX_MONTHS\",\r\n        \"percentage\": 7\r\n      },\r\n      {\r\n        \"timespan\": \"YEAR\",\r\n        \"percentage\": 15\r\n      },\r\n      {\r\n        \"timespan\": \"TWO_YEAR\",\r\n        \"percentage\": 28\r\n      }\r\n    ],\r\n    \"specialties\": null,\r\n    \"revenue_range\": {\r\n      \"estimatedMinRevenue\": {\r\n        \"amount\": 500,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      },\r\n      \"estimatedMaxRevenue\": {\r\n        \"amount\": 1,\r\n        \"unit\": \"BILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      }\r\n    },\r\n    \"decision_makers_count\": \"11\",\r\n    \"logo_urls\": {\r\n      \"200x200\": \"https://media.licdn.com/dms/image/v2/D560BAQHOh3guPJUccA/company-logo_200_200/company-logo_200_200/0/1708370502956/freseniuskabimxico_logo?e=1732147200&v=beta&t=4OzyrQRR_G6iWA9MgnJpfvXtUvhNdtu_cf8iNlcnQ4o\",\r\n      \"100x100\": \"https://media.licdn.com/dms/image/v2/D560BAQHOh3guPJUccA/company-logo_100_100/company-logo_100_100/0/1708370502956/freseniuskabimxico_logo?e=1732147200&v=beta&t=7zNalG53Wi546T-fwz1MsZaP5aweTTUXk_KHwVctgA8\",\r\n      \"400x400\": \"https://media.licdn.com/dms/image/v2/D560BAQHOh3guPJUccA/company-logo_400_400/company-logo_400_400/0/1708370502956/freseniuskabimxico_logo?e=1732147200&v=beta&t=xrA-MpKkPT-xAeC58y49zD3JZXlpzuhrvB2Qk_5m3qs\"\r\n    }\r\n  },\r\n  {\r\n    \"name\": \"Birdman\",\r\n    \"description\": \"Birdman strives to become the main nutritional ally to environmentally- and health-conscious consumers by facilitating the transition to more sustainable lifestyles through an offering of best-in-class plant-based products that are both healthy and delicious.\\n\\nJoin the revolution towards a healthier, more ethical, and more sustainable plant-fuelled future. #TAKEFLIGHT\\n\\nGood for You, Good for the Planet.\\n\",\r\n    \"linkedin_company_url\": \"https://www.linkedin.com/company/vida-birdman-hombreave/\",\r\n    \"linkedin_company_id\": \"35439520\",\r\n    \"website\": \"http://www.vidabirdman.com\",\r\n    \"industry\": \"Food & Beverages\",\r\n    \"company_type\": \"Partnership\",\r\n    \"founded_year\": 2014,\r\n    \"location\": \"Mexico\",\r\n    \"headquarters\": {\r\n      \"country\": \"Mexico\",\r\n      \"city\": \"Future\",\r\n      \"line1\": \"A Better\"\r\n    },\r\n    \"employee_count\": 103,\r\n    \"employee_count_range\": \"51-200\",\r\n    \"employee_growth_percentages\": [\r\n      {\r\n        \"timespan\": \"SIX_MONTHS\",\r\n        \"percentage\": 11\r\n      },\r\n      {\r\n        \"timespan\": \"YEAR\",\r\n        \"percentage\": 28\r\n      },\r\n      {\r\n        \"timespan\": \"TWO_YEAR\",\r\n        \"percentage\": 77\r\n      }\r\n    ],\r\n    \"specialties\": [\r\n      \"Proteína Vegetal\",\r\n      \"Organic Protein\",\r\n      \"Plant Based\",\r\n      \"Raw Plant\",\r\n      \"Birdman\",\r\n      \"Hombreave\",\r\n      \"Hecho en México\",\r\n      \"Proteína Orgánica\",\r\n      \"Proteína Vegana\",\r\n      \"Greens\",\r\n      \"Eco-Friendly\",\r\n      \"Vegan\",\r\n      \"Kosher\",\r\n      \"USDA Certified\",\r\n      \"FDA Certified\",\r\n      \"Organic\",\r\n      \"Orgánico\",\r\n      \"Vegano\"\r\n    ],\r\n    \"revenue_range\": {\r\n      \"estimatedMinRevenue\": {\r\n        \"amount\": 10,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      },\r\n      \"estimatedMaxRevenue\": {\r\n        \"amount\": 20,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      }\r\n    },\r\n    \"decision_makers_count\": \"11\",\r\n    \"logo_urls\": {\r\n      \"200x200\": \"https://media.licdn.com/dms/image/v2/C4E0BAQGRA3_xrtmrbg/company-logo_200_200/company-logo_200_200/0/1630623249168/vida_birdman_hombreave_logo?e=1732147200&v=beta&t=McnRQ74-4qWxPimI7ydQ-yPV1pT1prJDDGgBueXS4x8\",\r\n      \"100x100\": \"https://media.licdn.com/dms/image/v2/C4E0BAQGRA3_xrtmrbg/company-logo_100_100/company-logo_100_100/0/1630623249168/vida_birdman_hombreave_logo?e=1732147200&v=beta&t=hdA60D4Bm91Uq-jSWdUYyEPr1CbZ-lKM6AuxdI6cz3c\",\r\n      \"400x400\": \"https://media.licdn.com/dms/image/v2/C4E0BAQGRA3_xrtmrbg/company-logo_400_400/company-logo_400_400/0/1630623249168/vida_birdman_hombreave_logo?e=1732147200&v=beta&t=TTKowkBM78NyPKpoFjGMIdYHh-KWmXnYDQyh_meVpfs\"\r\n    }\r\n  },\r\n  {\r\n    \"name\": \"Yves Rocher México\",\r\n    \"description\": \"🌿Bienvenido a Yves Rocher, Creador de Belleza Botánica desde hace 65 años, la marca ha combinado la efectividad de la botánica y la consideración de aspectos CSR. Es pionera en los cosméticos a base de plantas. Hoy es considerada la marca* No 1 de Belleza en Francia  y brilla en las cuatro esquinas del mundo.\\n\\nEl control único de su cadena de valor permite a la marca, ofrecer una amplia variedad de la expertis de las plantas a los botánicos de la piel, manufacturas, retailers, así como también con toda la función de soporte que acompañan al negocio.\\n\\nConvencidos de la fortaleza colectiva, Yves Rocher  confía en sus 6 800 empelados alrededor del mundo y \\n trabaja cada día por una belleza más natural y más responsable.\\n\\nPertenecer a Yves Rocher da sentido a tu trabajo\\n#MakethechoicetoAct\\n\\n🌎Datos clave\\n• Más de 20 millones de consumidores en 90 países\\n• Alrededor de 2 300 tiendas en todo el mundo, 3 500 puntos de venta y 1 100 institutos\\n•250 millones de productos vendidos por año\\n\\n🌱Compromisos\\nUna cosmética francesa y eficiente basada en plantas • Más fórmulas naturales que limitan el uso de ingredientes controversiales • Nuevos gestos de belleza que reducen el uso del plástico •  Plantas orgánicas y crecimiento certificado usando métodos agrícolas •  Una fuente más sustentable de ingredientes botánicos que dan soporte a las actividades de nuestros \\nsocios agrícolas •  Una industria cosmética más eficiente en energía y agua • Una marca de quienes sus empleados cuidan de la naturaleza • Respaldar las acciones de la Fundación Yves Rocher que hacen nuestra vida diaria más verde juntos \\n\\n*Kantar 2022 in volume and value\\n\",\r\n    \"linkedin_company_url\": \"https://www.linkedin.com/company/yves-rocher-m%C3%A9xico/\",\r\n    \"linkedin_company_id\": \"65894445\",\r\n    \"website\": \"https://www.yvesrocher.com.mx/\",\r\n    \"industry\": \"Personal Care Product Manufacturing\",\r\n    \"company_type\": \"Privately Held\",\r\n    \"founded_year\": 1959,\r\n    \"location\": \"Mexico\",\r\n    \"headquarters\": {\r\n      \"country\": \"Mexico\",\r\n      \"geographicArea\": \"Ciudad de México\",\r\n      \"city\": \"Ciudad de México\",\r\n      \"postalCode\": \"06600\",\r\n      \"line1\": \"Insurgentes Sur 1458\"\r\n    },\r\n    \"employee_count\": 124,\r\n    \"employee_count_range\": \"501-1000\",\r\n    \"employee_growth_percentages\": [\r\n      {\r\n        \"timespan\": \"SIX_MONTHS\",\r\n        \"percentage\": 5\r\n      },\r\n      {\r\n        \"timespan\": \"YEAR\",\r\n        \"percentage\": 10\r\n      },\r\n      {\r\n        \"timespan\": \"TWO_YEAR\",\r\n        \"percentage\": 21\r\n      }\r\n    ],\r\n    \"specialties\": null,\r\n    \"revenue_range\": {\r\n      \"estimatedMinRevenue\": {\r\n        \"amount\": 500,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      },\r\n      \"estimatedMaxRevenue\": {\r\n        \"amount\": 1,\r\n        \"unit\": \"BILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      }\r\n    },\r\n    \"decision_makers_count\": \"6\",\r\n    \"logo_urls\": {\r\n      \"200x200\": \"https://media.licdn.com/dms/image/v2/D560BAQFMk0wqhXor8w/company-logo_200_200/company-logo_200_200/0/1703703040366/yves_rocher_mxico_logo?e=1732147200&v=beta&t=1axvpgXFV1N3OkdG-hfP8Xk8o9PuqzuiGmv9UiKix00\",\r\n      \"100x100\": \"https://media.licdn.com/dms/image/v2/D560BAQFMk0wqhXor8w/company-logo_100_100/company-logo_100_100/0/1703703040366/yves_rocher_mxico_logo?e=1732147200&v=beta&t=gqXsFbEtRj4SPiNHI_vfxLbzvXf8FvWagYdbq4RD7nQ\",\r\n      \"400x400\": \"https://media.licdn.com/dms/image/v2/D560BAQFMk0wqhXor8w/company-logo_400_400/company-logo_400_400/0/1703703040366/yves_rocher_mxico_logo?e=1732147200&v=beta&t=ts9DuWP1UsPDE_HBoZA-muuWblQ_tkg2e0bP5QiXRVc\"\r\n    }\r\n  },\r\n  {\r\n    \"name\": \"DVA Mexicana\",\r\n    \"description\": \"\\\"Sólo quien conoce las exigencias y necesidades de sus clientes puede satisfacerlas\\\"​ \\r\\n\\r\\nFue con esta filosofía que la empresa DVA se transformó, desde su fundación en 1968, de ser un establecimiento comercial clásico a ser un especialista en prestar servicio integrado en el área del comercio internacional y en el desarrollo de productos. Ofreciendo soluciones integrales a los diferentes problemas y con sedes propias en el mundo entero, la empresa naturalmente también queda a disposición de sus clientes para temas en el área de marketing, logística, financiación y servicio de postventa. En todo ello, lo más importante para DVA es mantener una calidad constante y clientes satisfechos.\\r\\n\\r\\nEn DVA Mexicana ofrecemos materias primas de  calidad internacional, así como nuevas soluciones para optimizar procesos de fabricación en las industrias de la Salud, Nutrición, Químicos, Agroquímica y Cuidado Personal de alto nivel.\",\r\n    \"linkedin_company_url\": \"https://www.linkedin.com/company/dva-mexicana/\",\r\n    \"linkedin_company_id\": \"2385346\",\r\n    \"website\": null,\r\n    \"industry\": \"Chemical Manufacturing\",\r\n    \"company_type\": \"Privately Held\",\r\n    \"founded_year\": 1998,\r\n    \"location\": \"Miguel Hidalgo, Mexico City, Mexico\",\r\n    \"headquarters\": {\r\n      \"country\": \"Mexico\",\r\n      \"geographicArea\": \"Ciudad de México\",\r\n      \"city\": \"Colonia Granada, Delegación Miguel Hidalgo\",\r\n      \"postalCode\": \"11520\",\r\n      \"line1\": \"Lago Alberto No 319, 7° Piso, 701\"\r\n    },\r\n    \"employee_count\": 95,\r\n    \"employee_count_range\": \"51-200\",\r\n    \"employee_growth_percentages\": [\r\n      {\r\n        \"timespan\": \"SIX_MONTHS\",\r\n        \"percentage\": 3\r\n      },\r\n      {\r\n        \"timespan\": \"YEAR\",\r\n        \"percentage\": 4\r\n      },\r\n      {\r\n        \"timespan\": \"TWO_YEAR\",\r\n        \"percentage\": -2\r\n      }\r\n    ],\r\n    \"specialties\": null,\r\n    \"revenue_range\": {\r\n      \"estimatedMinRevenue\": {\r\n        \"amount\": 10,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      },\r\n      \"estimatedMaxRevenue\": {\r\n        \"amount\": 20,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      }\r\n    },\r\n    \"decision_makers_count\": \"2\",\r\n    \"logo_urls\": {\r\n      \"200x200\": \"https://media.licdn.com/dms/image/v2/D4D0BAQFOS1GDfdxjaw/company-logo_200_200/company-logo_200_200/0/1704219376195/dva_mexicana_logo?e=1732147200&v=beta&t=Oimwq3PwEziBv74Xkl6ZEC2LC6CJ2FRB0JJWZQ5rUVs\",\r\n      \"100x100\": \"https://media.licdn.com/dms/image/v2/D4D0BAQFOS1GDfdxjaw/company-logo_100_100/company-logo_100_100/0/1704219376195/dva_mexicana_logo?e=1732147200&v=beta&t=OuZxBQJKz5MbkHf3Q4quMDYkNEVQC2GESjV92UdmsYw\",\r\n      \"400x400\": \"https://media.licdn.com/dms/image/v2/D4D0BAQFOS1GDfdxjaw/company-logo_400_400/company-logo_400_400/0/1704219376195/dva_mexicana_logo?e=1732147200&v=beta&t=j6ftVSSjRu6iwxO_TCPy9nM4hRx--8nTqdNR5yzop-Q\"\r\n    }\r\n  },\r\n  {\r\n    \"name\": \"Volvo Group México\",\r\n    \"description\": \"El Grupo Volvo es uno de los principales fabricantes mundiales de camiones, autobuses, equipos de construcción y motores marinos e industriales. El Grupo también proporciona soluciones completas para financiamiento y servicio. El Grupo Volvo, con sede en Gotemburgo, emplea a unas 100.000 personas, tiene instalaciones de producción en 18 países y vende sus productos en más de 190 mercados.\\n\\nVolvo Group México desarrolla las soluciones de transporte del mañana, con un enfoque en la seguridad, la innovación, y el cuidado al medio ambiente. Somos uno de los principales fabricantes de camiones, autobuses, equipos de construcción y motores marinos e industriales del mundo. \\n\\nBuscamos crear prosperidad a través de soluciones sustentables de transporte, misión para la que trabajamos con pasión. Volvo Group emplea a más de 100,000 personas a nivel global y su operación en México es posible gracias a los casi 1,500 colaboradores que integran nuestra comunidad. \\nBuscamos, fomentamos y desarrollamos el talento especializado que la industria requiere para la innovación constante y la transformación social. \\n\\nVolvo Group México esta conformada por 4 unidades de negocio: Volvo Trucks México, Volvo Buses México, Volvo Financial Services México y Volvo Construction Equipment México.\\n\\n¡El desarrollo de talento en #VolvoGroupMéxico es una manera de impulsar la prosperidad todos los días!\",\r\n    \"linkedin_company_url\": \"https://www.linkedin.com/company/volvo-group-mexico/\",\r\n    \"linkedin_company_id\": \"33292456\",\r\n    \"website\": \"https://www.volvogroup.mx/es-mx/home.html\",\r\n    \"industry\": \"Automotive\",\r\n    \"company_type\": \"Public Company\",\r\n    \"founded_year\": null,\r\n    \"location\": \"Tultitlá de Mariano Escobedo, México, Mexico\",\r\n    \"headquarters\": {\r\n      \"country\": \"Mexico\",\r\n      \"geographicArea\": \"México\",\r\n      \"city\": \"Fracc Los Agaves\",\r\n      \"postalCode\": \"54910\",\r\n      \"line1\": \"Avenida Recursos Hidráulicos\"\r\n    },\r\n    \"employee_count\": 164,\r\n    \"employee_count_range\": \"1001-5000\",\r\n    \"employee_growth_percentages\": [\r\n      {\r\n        \"timespan\": \"SIX_MONTHS\",\r\n        \"percentage\": 1\r\n      },\r\n      {\r\n        \"timespan\": \"YEAR\",\r\n        \"percentage\": 2\r\n      },\r\n      {\r\n        \"timespan\": \"TWO_YEAR\",\r\n        \"percentage\": 11\r\n      }\r\n    ],\r\n    \"specialties\": [\r\n      \"Transporte\",\r\n      \"Tractocamiones\",\r\n      \"Servicios Financieros\",\r\n      \"Autobuses\",\r\n      \"Equipo de Construcción\"\r\n    ],\r\n    \"revenue_range\": {\r\n      \"estimatedMinRevenue\": {\r\n        \"amount\": 500,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      },\r\n      \"estimatedMaxRevenue\": {\r\n        \"amount\": 1,\r\n        \"unit\": \"BILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      }\r\n    },\r\n    \"decision_makers_count\": \"8\",\r\n    \"logo_urls\": {\r\n      \"200x200\": \"https://media.licdn.com/dms/image/C4D0BAQF8a0SnbTNjqA/company-logo_200_200/0/1632478907243/volvo_group_mexico_logo?e=1732147200&v=beta&t=vztVSOYcc5weDMxnppRnUzKujsXYQdpucVpX_Sr644s\",\r\n      \"100x100\": \"https://media.licdn.com/dms/image/C4D0BAQF8a0SnbTNjqA/company-logo_100_100/0/1632478907243/volvo_group_mexico_logo?e=1732147200&v=beta&t=F6kTmVBrkfxMlR6W2Ay5HIFK_YsNP_rczBI3iO4TcZA\",\r\n      \"400x400\": \"https://media.licdn.com/dms/image/C4D0BAQF8a0SnbTNjqA/company-logo_400_400/0/1632478907243/volvo_group_mexico_logo?e=1732147200&v=beta&t=yJih3Z7-ix0JtNemY5bJIh680ro3xgfTiAY3-ISHCeA\"\r\n    }\r\n  },\r\n  {\r\n    \"name\": \"GWM Mexico\",\r\n    \"description\": \"GWM is a Chinese privately owned automobile manufacturer headquartered in Baoding, Hebei. Founded in 1984, it is currently the eighth largest automobile manufacturer in China.\",\r\n    \"linkedin_company_url\": \"https://www.linkedin.com/company/gwm-mx/\",\r\n    \"linkedin_company_id\": \"96079181\",\r\n    \"website\": \"gwm-mx.com\",\r\n    \"industry\": \"Motor Vehicle Manufacturing\",\r\n    \"company_type\": \"Public Company\",\r\n    \"founded_year\": 1984,\r\n    \"location\": \"Miguel Hidalgo, Mexico City, Mexico\",\r\n    \"headquarters\": {\r\n      \"country\": \"Mexico\",\r\n      \"geographicArea\": \"Ciudad de Mexico \",\r\n      \"city\": \"Mexico \",\r\n      \"postalCode\": \"11700\"\r\n    },\r\n    \"employee_count\": 93,\r\n    \"employee_count_range\": \"51-200\",\r\n    \"employee_growth_percentages\": [\r\n      {\r\n        \"timespan\": \"SIX_MONTHS\",\r\n        \"percentage\": 30\r\n      },\r\n      {\r\n        \"timespan\": \"YEAR\",\r\n        \"percentage\": 615\r\n      },\r\n      {\r\n        \"timespan\": \"TWO_YEAR\",\r\n        \"percentage\": 2147483647\r\n      }\r\n    ],\r\n    \"specialties\": [\r\n      \"hybrid\",\r\n      \"cars\",\r\n      \"hybridcars\",\r\n      \"greenenergy\",\r\n      \"SUV´s\",\r\n      \"new energy\"\r\n    ],\r\n    \"revenue_range\": {\r\n      \"estimatedMinRevenue\": {\r\n        \"amount\": 10,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      },\r\n      \"estimatedMaxRevenue\": {\r\n        \"amount\": 20,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      }\r\n    },\r\n    \"decision_makers_count\": \"5\",\r\n    \"logo_urls\": {\r\n      \"200x200\": \"https://media.licdn.com/dms/image/v2/D4E0BAQEMba0Jwgf0-A/company-logo_200_200/company-logo_200_200/0/1696610192321/gwm_mx_logo?e=1732147200&v=beta&t=G04Cw8nix0ZhbWkbjP7TWEK8ekUuKkrM4WfMJcWtj_s\",\r\n      \"100x100\": \"https://media.licdn.com/dms/image/v2/D4E0BAQEMba0Jwgf0-A/company-logo_100_100/company-logo_100_100/0/1696610192321/gwm_mx_logo?e=1732147200&v=beta&t=mM5PatlZO09Q9ERHP3vy3_cyNFIOeF58jQybKjmTC8Q\",\r\n      \"400x400\": \"https://media.licdn.com/dms/image/v2/D4E0BAQEMba0Jwgf0-A/company-logo_400_400/company-logo_400_400/0/1696610192321/gwm_mx_logo?e=1732147200&v=beta&t=0Veo7DqY2VsHB-TH1x23ksKLevep1nf2CoR_D7fCByY\"\r\n    }\r\n  },\r\n  {\r\n    \"name\": \"FMC México\",\r\n    \"description\": \"Somos una empresa de ciencias agrícolas que promueve la agricultura a través de tecnologías innovadoras y sustentables para la protección de cultivos. \\nNos apasiona ofrecer nuevas soluciones a los productores de todo el mundo. Impulsados por la innovación, comprometidos con el descubrimiento.\",\r\n    \"linkedin_company_url\": \"https://www.linkedin.com/company/fmc-agroquimica/\",\r\n    \"linkedin_company_id\": \"40965833\",\r\n    \"website\": \"http://www.fmcagroquimica.com.mx/\",\r\n    \"industry\": \"Chemical Manufacturing\",\r\n    \"company_type\": \"Privately Held\",\r\n    \"founded_year\": null,\r\n    \"location\": \"Ciudad Granja, Jalisco, Mexico\",\r\n    \"headquarters\": {\r\n      \"country\": \"Mexico\",\r\n      \"geographicArea\": \"Jalisco\",\r\n      \"city\": \"Zapopan\",\r\n      \"postalCode\": \"45010\",\r\n      \"line2\": \"A1-6\",\r\n      \"line1\": \"Av. Vallarta 6503\"\r\n    },\r\n    \"employee_count\": 58,\r\n    \"employee_count_range\": \"201-500\",\r\n    \"employee_growth_percentages\": [\r\n      {\r\n        \"timespan\": \"SIX_MONTHS\",\r\n        \"percentage\": -12\r\n      },\r\n      {\r\n        \"timespan\": \"YEAR\",\r\n        \"percentage\": -9\r\n      },\r\n      {\r\n        \"timespan\": \"TWO_YEAR\",\r\n        \"percentage\": 13\r\n      }\r\n    ],\r\n    \"specialties\": null,\r\n    \"revenue_range\": {\r\n      \"estimatedMinRevenue\": {\r\n        \"amount\": 20,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      },\r\n      \"estimatedMaxRevenue\": {\r\n        \"amount\": 50,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      }\r\n    },\r\n    \"decision_makers_count\": \"2\",\r\n    \"logo_urls\": {\r\n      \"200x200\": \"https://media.licdn.com/dms/image/v2/D4E0BAQFX6cKPOX0gug/company-logo_200_200/company-logo_200_200/0/1712964864829/fmc_agroquimica_logo?e=1732147200&v=beta&t=IARUj3TeDpyQBIBiDZLct8rLvMZBOYGENjikd61nIac\",\r\n      \"100x100\": \"https://media.licdn.com/dms/image/v2/D4E0BAQFX6cKPOX0gug/company-logo_100_100/company-logo_100_100/0/1712964864829/fmc_agroquimica_logo?e=1732147200&v=beta&t=zxpk0GS26LVrdOWTDnNQ5Fjqk0L4wj3VOyR2jquHPb4\",\r\n      \"400x400\": \"https://media.licdn.com/dms/image/v2/D4E0BAQFX6cKPOX0gug/company-logo_400_400/company-logo_400_400/0/1712964864829/fmc_agroquimica_logo?e=1732147200&v=beta&t=KI7wJ0QVi7M_2Wiimi9-Tab8XMcVegV3nyIglUt4jzA\"\r\n    }\r\n  },\r\n  {\r\n    \"name\": \"Sandoz México\",\r\n    \"description\": \"Sandoz es la compañía líder en medicamentos genéricos y biocomparables con principal sede en Holzkirchen, Munich.\\n\\nTrabajamos continuamente para descubrir formas innovadoras para brindar soluciones asequibles y de alta calidad a la población que las necesitan.\\n\\nSandoz, S.A. de C.V., con domicilio en Av. Insurgentes Sur No.2475, Piso 7, Barrio Loreto, Álvaro Obregón, 01090, CDMX, México, es responsable de recabar los datos personales que usted nos proporcione, mismos que serán utilizados para cumplimentar la legislación respectiva. Le invitamos a consultar nuestro Aviso de Privacidad Integral y los mecanismos para ejercer sus derechos en https://www.novartis.com/mx-es/aviso-de-privacidad\",\r\n    \"linkedin_company_url\": \"https://www.linkedin.com/company/sandozmexico/\",\r\n    \"linkedin_company_id\": \"80044664\",\r\n    \"website\": null,\r\n    \"industry\": \"Pharmaceutical Manufacturing\",\r\n    \"company_type\": \"Privately Held\",\r\n    \"founded_year\": null,\r\n    \"location\": \"Netzahualcóyotl, México, Mexico\",\r\n    \"headquarters\": {\r\n      \"country\": \"Mexico\",\r\n      \"geographicArea\": \"México\",\r\n      \"city\": \"ciudad de méxico\"\r\n    },\r\n    \"employee_count\": 122,\r\n    \"employee_count_range\": \"5001-10000\",\r\n    \"employee_growth_percentages\": [\r\n      {\r\n        \"timespan\": \"SIX_MONTHS\",\r\n        \"percentage\": 18\r\n      },\r\n      {\r\n        \"timespan\": \"YEAR\",\r\n        \"percentage\": 32\r\n      },\r\n      {\r\n        \"timespan\": \"TWO_YEAR\",\r\n        \"percentage\": 258\r\n      }\r\n    ],\r\n    \"specialties\": null,\r\n    \"revenue_range\": {\r\n      \"estimatedMinRevenue\": {\r\n        \"amount\": 500,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      },\r\n      \"estimatedMaxRevenue\": {\r\n        \"amount\": 1,\r\n        \"unit\": \"BILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      }\r\n    },\r\n    \"decision_makers_count\": \"4\",\r\n    \"logo_urls\": {\r\n      \"200x200\": \"https://media.licdn.com/dms/image/v2/D4E0BAQE6aIiaRvJp9w/company-logo_200_200/company-logo_200_200/0/1719844168550/sandozmexico_logo?e=1732147200&v=beta&t=WEHdobo4Im5b03FAnUv_kBguuGwwgoYlwP0elFVW2hA\",\r\n      \"100x100\": \"https://media.licdn.com/dms/image/v2/D4E0BAQE6aIiaRvJp9w/company-logo_100_100/company-logo_100_100/0/1719844168550/sandozmexico_logo?e=1732147200&v=beta&t=5Tezsjq-tmKM-mkxIcUe8vRAAsY5qLLdK1w6WvrNlKo\",\r\n      \"400x400\": \"https://media.licdn.com/dms/image/v2/D4E0BAQE6aIiaRvJp9w/company-logo_400_400/company-logo_400_400/0/1719844168550/sandozmexico_logo?e=1732147200&v=beta&t=YG4TasXxmkYa4MNB5uqaGMsaoh_SUOBVOGK0Xoy3UZE\"\r\n    }\r\n  },\r\n  {\r\n    \"name\": \"Teva México\",\r\n    \"description\": \"Nuestro compromiso es ofrecer medicamentos innovadores y de alta calidad a 200 millones de personas a las que atendemos cada día en todo el mundo, para ayudar así a pacientes, familias y comunidades a mejorar su salud.\\n\\nNo. SSA 203300201B0429\",\r\n    \"linkedin_company_url\": \"https://www.linkedin.com/company/tevamx/\",\r\n    \"linkedin_company_id\": \"40730075\",\r\n    \"website\": \"https://www.tevamexico.com.mx/\",\r\n    \"industry\": \"Pharmaceutical Manufacturing\",\r\n    \"company_type\": \"Privately Held\",\r\n    \"founded_year\": null,\r\n    \"location\": \"Tlalpan, Mexico City, Mexico\",\r\n    \"headquarters\": {\r\n      \"country\": \"Mexico\",\r\n      \"geographicArea\": \"Ciudad de México\",\r\n      \"city\": \"Ciudad de México\",\r\n      \"postalCode\": \"14210\",\r\n      \"line1\": \" Camino de Sta. Teresa 1040, Jardines en la Montaña\"\r\n    },\r\n    \"employee_count\": 167,\r\n    \"employee_count_range\": \"501-1000\",\r\n    \"employee_growth_percentages\": [\r\n      {\r\n        \"timespan\": \"SIX_MONTHS\",\r\n        \"percentage\": 11\r\n      },\r\n      {\r\n        \"timespan\": \"YEAR\",\r\n        \"percentage\": 10\r\n      },\r\n      {\r\n        \"timespan\": \"TWO_YEAR\",\r\n        \"percentage\": 47\r\n      }\r\n    ],\r\n    \"specialties\": null,\r\n    \"revenue_range\": {\r\n      \"estimatedMinRevenue\": {\r\n        \"amount\": 500,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      },\r\n      \"estimatedMaxRevenue\": {\r\n        \"amount\": 1,\r\n        \"unit\": \"BILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      }\r\n    },\r\n    \"decision_makers_count\": \"6\",\r\n    \"logo_urls\": {\r\n      \"200x200\": \"https://media.licdn.com/dms/image/v2/D4E0BAQFrIzEGx6V4VQ/company-logo_200_200/company-logo_200_200/0/1719846573773/tevamx_logo?e=1732147200&v=beta&t=E_8R94pi93tv1uQOv7Ic-YQtsopP04d6TiEilcaSLtM\",\r\n      \"100x100\": \"https://media.licdn.com/dms/image/v2/D4E0BAQFrIzEGx6V4VQ/company-logo_100_100/company-logo_100_100/0/1719846573773/tevamx_logo?e=1732147200&v=beta&t=3P53br0wguooV-JIicj3DUvEf47jQLUQEVGi4EPBQgc\",\r\n      \"400x400\": \"https://media.licdn.com/dms/image/v2/D4E0BAQFrIzEGx6V4VQ/company-logo_400_400/company-logo_400_400/0/1719846573773/tevamx_logo?e=1732147200&v=beta&t=jpTbZ8JYX3OqnOmqC3BAR7QQIsuatu2b94ZEDsWlU4o\"\r\n    }\r\n  },\r\n  {\r\n    \"name\": \"Enlight Mexico\",\r\n    \"description\": \"En Enlight la pasión por la tecnología y el medio ambiente se unen. La energía que consumen nuestros clientes es más limpia, cuesta menos y viene acompañada de un excelente servicio e información oportuna sobre su uso.  \\nEstamos creciendo junto con un equipo de mentes brillantes y de alto desempeño. Nuestra cultura de trabajo se basa en la confianza, la responsabilidad y el cumplimiento de metas. Aquí, las buenas ideas pesan más que la edad o el estatus, el hacer y ejecutar es más valorado que el perfeccionismo.  \\n\\nCon 7 años en la industria y más de 2,500 clientes satisfechos, estamos creciendo a un ritmo de 50% cada trimestre y hemos sido reconocidos como una de las empresas más prometedores y relevantes en el sector de energía solar en México.  Enlight está en la cresta de la ola de la increíble transformación que se está viviendo en el sector energético de México. En Agosto 2015 recibimos una inversión por parte de ALL VP, uno de los fondos de riesgo más innovadores en México. En febrero de 2017, hemos recibido una segunda ronda de inversión por parte de la más grande empresa generadora de energía del mundo, Engie, dándonos una gran oportunidad de crecimiento a nivel nacional e internacional. Estamos listos para dar nuestros siguientes pasos… y rápido.\\n\\nEstamos buscando nuevos miembros en nuestro equipo que quieran un lugar en primera fila para vivir y participar en el cambio de paradigma de la red eléctrica de México. Queremos crecer el equipo con individuos que estén buscando un gran reto, que ponga a prueba sus capacidades de innovar, de trabajar con intensidad, de ser líder, de ser parte de la construcción de una empresa que está cambiando el estatus quo en México.\",\r\n    \"linkedin_company_url\": \"https://www.linkedin.com/company/enlight-mexico/\",\r\n    \"linkedin_company_id\": \"3181266\",\r\n    \"website\": \"https://www.enlight.mx\",\r\n    \"industry\": \"Renewable Energy Semiconductor Manufacturing\",\r\n    \"company_type\": \"Privately Held\",\r\n    \"founded_year\": 2011,\r\n    \"location\": \"Miguel Hidalgo, Mexico City, Mexico\",\r\n    \"headquarters\": {\r\n      \"country\": \"Mexico\",\r\n      \"geographicArea\": \"Ciudad de México\",\r\n      \"city\": \"Mexico City\",\r\n      \"postalCode\": \"11300\",\r\n      \"line1\": \"Bahía de Santa Bárbara 119\"\r\n    },\r\n    \"employee_count\": 152,\r\n    \"employee_count_range\": \"51-200\",\r\n    \"employee_growth_percentages\": [\r\n      {\r\n        \"timespan\": \"SIX_MONTHS\",\r\n        \"percentage\": 7\r\n      },\r\n      {\r\n        \"timespan\": \"YEAR\",\r\n        \"percentage\": 7\r\n      },\r\n      {\r\n        \"timespan\": \"TWO_YEAR\",\r\n        \"percentage\": 18\r\n      }\r\n    ],\r\n    \"specialties\": null,\r\n    \"revenue_range\": {\r\n      \"estimatedMinRevenue\": {\r\n        \"amount\": 10,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      },\r\n      \"estimatedMaxRevenue\": {\r\n        \"amount\": 20,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      }\r\n    },\r\n    \"decision_makers_count\": \"9\",\r\n    \"logo_urls\": {\r\n      \"200x200\": \"https://media.licdn.com/dms/image/v2/D4D0BAQG2qFY0-nLr9A/company-logo_200_200/company-logo_200_200/0/1710961208859/enlight_mexico_logo?e=1732147200&v=beta&t=KbjWDK04_TDPx3xmANl9QbwW3PDyTUP6SXjBP-slumc\",\r\n      \"100x100\": \"https://media.licdn.com/dms/image/v2/D4D0BAQG2qFY0-nLr9A/company-logo_100_100/company-logo_100_100/0/1710961208859/enlight_mexico_logo?e=1732147200&v=beta&t=6UxA8ns7m_-_RakbSZwPo0AZ3I47_WTyCf9ELzOH26g\",\r\n      \"400x400\": \"https://media.licdn.com/dms/image/v2/D4D0BAQG2qFY0-nLr9A/company-logo_400_400/company-logo_400_400/0/1710961208859/enlight_mexico_logo?e=1732147200&v=beta&t=NZ4UtLXElofj8azUs8LX175CQh5CWHdhkAMhpT0PHIM\"\r\n    }\r\n  },\r\n  {\r\n    \"name\": \"AES México\",\r\n    \"description\": \"El mundo ya no piensa en la energía como una cuestión de oferta y demanda. Ahora es un espacio para la innovación y asociación. Con esta transformación viene la responsabilidad de trabajar con un enfoque más inteligente, con un nuevo pensamiento informado por experiencias pasadas y con una colaboración más solida entre reguladores e innovadores, sistemas antiguos y nuevas tecnologías. \\n\\nEn AES, nos asociamos con organizaciones de todo tipo de industrias, en todos los mercados y en cada etapa de desarrollo.\\nSabemos que cada organización se encuentra en un lugar único en su viaje energético. Cuando se trabaja con AES, se puede esperar trabajar con una asociación que crea soluciones energéticas personalizadas que brindan el mayor valor, potencializando el crecimiento de los negocios. \\n\\n\",\r\n    \"linkedin_company_url\": \"https://www.linkedin.com/company/aesmexico/\",\r\n    \"linkedin_company_id\": \"35517929\",\r\n    \"website\": \"http://www.aesmex.com/\",\r\n    \"industry\": \"Renewable Energy Semiconductor Manufacturing\",\r\n    \"company_type\": \"Public Company\",\r\n    \"founded_year\": null,\r\n    \"location\": \"Miguel Hidalgo, Mexico City, Mexico\",\r\n    \"headquarters\": {\r\n      \"country\": \"Mexico\",\r\n      \"geographicArea\": \"Mexico City\",\r\n      \"city\": \"Mexico City\",\r\n      \"postalCode\": \"11000\",\r\n      \"line1\": \" Av. Paseo de las Palmas 405\"\r\n    },\r\n    \"employee_count\": 82,\r\n    \"employee_count_range\": \"201-500\",\r\n    \"employee_growth_percentages\": [\r\n      {\r\n        \"timespan\": \"SIX_MONTHS\",\r\n        \"percentage\": -3\r\n      },\r\n      {\r\n        \"timespan\": \"YEAR\",\r\n        \"percentage\": 6\r\n      },\r\n      {\r\n        \"timespan\": \"TWO_YEAR\",\r\n        \"percentage\": 3\r\n      }\r\n    ],\r\n    \"specialties\": [\r\n      \"power\",\r\n      \"solar power\"\r\n    ],\r\n    \"revenue_range\": {\r\n      \"estimatedMinRevenue\": {\r\n        \"amount\": 20,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      },\r\n      \"estimatedMaxRevenue\": {\r\n        \"amount\": 50,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      }\r\n    },\r\n    \"decision_makers_count\": \"4\",\r\n    \"logo_urls\": {\r\n      \"200x200\": \"https://media.licdn.com/dms/image/v2/C4E0BAQGWSX3oM-OHFw/company-logo_200_200/company-logo_200_200/0/1630653529471/aesmexico_logo?e=1732147200&v=beta&t=6YnrDnUb8zzhVN6J1GyCm2_GDm-Qs255AN663o5eZk0\",\r\n      \"100x100\": \"https://media.licdn.com/dms/image/v2/C4E0BAQGWSX3oM-OHFw/company-logo_100_100/company-logo_100_100/0/1630653529471/aesmexico_logo?e=1732147200&v=beta&t=N4QGji8HtX_69_-RiHSgeUIlA9-TNu6j-RRmErFzXOc\",\r\n      \"400x400\": \"https://media.licdn.com/dms/image/v2/C4E0BAQGWSX3oM-OHFw/company-logo_400_400/company-logo_400_400/0/1630653529471/aesmexico_logo?e=1732147200&v=beta&t=qnV9X06xMZUp6cfqmqe7X4qBGl3iT-qDvjGw_kGLMk8\"\r\n    }\r\n  },\r\n  {\r\n    \"name\": \"BYD MÉXICO\",\r\n    \"description\": \"El líder mundial especializado en energía limpia, BYD (Build Your Dreams) fue fundado en 1995 y rápidamente se ha convertido en el mayor fabricante mundial de baterías recargables, sistemas de almacenamiento de energía, automóviles, autobuses y camiones eléctricos. La empresa está presente en los cinco continentes, 45 países y 170 ciudades y cuenta con el estadounidense Warren Buffet entre sus socios. Con 220.000 empleados distribuidos en 33 fábricas en todo el mundo (20.000 ingenieros de investigación), BYD es el segundo mayor productor de componentes para teléfonos móviles, tabletas y portátiles del mundo. BYD México empieza operaciones este 2021 para ser el líder en la movilidad eléctrica en el país.\",\r\n    \"linkedin_company_url\": \"https://www.linkedin.com/company/byd-m%C3%A9xico/\",\r\n    \"linkedin_company_id\": \"76255625\",\r\n    \"website\": \"http://www.byd.com\",\r\n    \"industry\": \"Motor Vehicle Manufacturing\",\r\n    \"company_type\": \"Self-Employed\",\r\n    \"founded_year\": 1995,\r\n    \"location\": \"Miguel Hidalgo, Mexico City, Mexico\",\r\n    \"headquarters\": {\r\n      \"country\": \"Mexico\",\r\n      \"geographicArea\": \"Polanco\",\r\n      \"city\": \"Ciudad de México\",\r\n      \"postalCode\": \"11550\"\r\n    },\r\n    \"employee_count\": 129,\r\n    \"employee_count_range\": \"201-500\",\r\n    \"employee_growth_percentages\": [\r\n      {\r\n        \"timespan\": \"SIX_MONTHS\",\r\n        \"percentage\": 63\r\n      },\r\n      {\r\n        \"timespan\": \"YEAR\",\r\n        \"percentage\": 134\r\n      },\r\n      {\r\n        \"timespan\": \"TWO_YEAR\",\r\n        \"percentage\": 821\r\n      }\r\n    ],\r\n    \"specialties\": [\r\n      \"vehículos eléctricos\",\r\n      \"sustentabilidad\"\r\n    ],\r\n    \"revenue_range\": {\r\n      \"estimatedMinRevenue\": {\r\n        \"amount\": 20,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      },\r\n      \"estimatedMaxRevenue\": {\r\n        \"amount\": 50,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      }\r\n    },\r\n    \"decision_makers_count\": \"9\",\r\n    \"logo_urls\": {\r\n      \"200x200\": \"https://media.licdn.com/dms/image/v2/D4E0BAQF13THEYdkifQ/company-logo_200_200/company-logo_200_200/0/1700258212519/byd_mxico_logo?e=1732147200&v=beta&t=_TPRIpODS5VeU8_VHiFzBeuvjlxKmAPlvj2Bp7gaGcI\",\r\n      \"100x100\": \"https://media.licdn.com/dms/image/v2/D4E0BAQF13THEYdkifQ/company-logo_100_100/company-logo_100_100/0/1700258212519/byd_mxico_logo?e=1732147200&v=beta&t=dFgkZpF7Vvjln5l1qydu5shc-hCGF4GYO1selljeSTc\",\r\n      \"400x400\": \"https://media.licdn.com/dms/image/v2/D4E0BAQF13THEYdkifQ/company-logo_400_400/company-logo_400_400/0/1700258212519/byd_mxico_logo?e=1732147200&v=beta&t=7ubJwEUBU6sfHa-eGVxx4BmQc6YJMSLCF1Oy2XcylOw\"\r\n    }\r\n  },\r\n  {\r\n    \"name\": \"Volvo Buses México\",\r\n    \"description\": \"Volvo Buses es una de las marcas de autobuses foráneos y urbanos líderes en el mundo, con operaciones en más de 140 países. Nuestra motivación es la pasión de ayudar a crear las ciudades del futuro, libres de tráfico, emisiones y ruido. Nuestra misión es ayudar a los operadores y a las comunidades a ofrecer un transporte seguro, limpio y eficaz para ir y venir del trabajo, alrededor de la ciudad o a través del continente. Lo hacemos al esforzarnos en ser el mejor proveedor de soluciones sustentables de transporte.\\n\\nVolvo fue fundada en Suecia en 1927 y un año después se puso en marcha nuestro primer autobús. La compañía comenzó con una visión de transporte seguro y eficaz para todos. Desde entonces Volvo ha estado a la vanguardia tecnológica y durante décadas, ha mantenido una posición sólida como líder mundial en transporte comercial y tecnología.\",\r\n    \"linkedin_company_url\": \"https://www.linkedin.com/company/volvobusesmex/\",\r\n    \"linkedin_company_id\": \"33228333\",\r\n    \"website\": \"http://www.volvobuses.mx\",\r\n    \"industry\": \"Motor Vehicle Manufacturing\",\r\n    \"company_type\": \"Public Company\",\r\n    \"founded_year\": 1998,\r\n    \"location\": \"Tultitlá de Mariano Escobedo, México, Mexico\",\r\n    \"headquarters\": {\r\n      \"country\": \"Mexico\",\r\n      \"geographicArea\": \"México\",\r\n      \"city\": \"Fracc Los Agaves\",\r\n      \"postalCode\": \"54910\",\r\n      \"line1\": \"Avenida Lago de Guadalupe 289\"\r\n    },\r\n    \"employee_count\": 116,\r\n    \"employee_count_range\": \"1001-5000\",\r\n    \"employee_growth_percentages\": [\r\n      {\r\n        \"timespan\": \"SIX_MONTHS\",\r\n        \"percentage\": 5\r\n      },\r\n      {\r\n        \"timespan\": \"YEAR\",\r\n        \"percentage\": 4\r\n      },\r\n      {\r\n        \"timespan\": \"TWO_YEAR\",\r\n        \"percentage\": 20\r\n      }\r\n    ],\r\n    \"specialties\": [\r\n      \"Transporte Foráneo\",\r\n      \"Transporte Urbano\"\r\n    ],\r\n    \"revenue_range\": {\r\n      \"estimatedMinRevenue\": {\r\n        \"amount\": 500,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      },\r\n      \"estimatedMaxRevenue\": {\r\n        \"amount\": 1,\r\n        \"unit\": \"BILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      }\r\n    },\r\n    \"decision_makers_count\": \"3\",\r\n    \"logo_urls\": {\r\n      \"200x200\": \"https://media.licdn.com/dms/image/C560BAQGaPevqxHti1w/company-logo_200_200/0/1632419555885/volvobusesmex_logo?e=1732147200&v=beta&t=eUOVZGXGnevlafdMV0TGosm9GufmzIZnGtskBJR3yRk\",\r\n      \"100x100\": \"https://media.licdn.com/dms/image/C560BAQGaPevqxHti1w/company-logo_100_100/0/1632419555885/volvobusesmex_logo?e=1732147200&v=beta&t=fyfIak9h5t0g2yk0cH2xfy01Nt6gUnLwIF7fOcP303s\",\r\n      \"400x400\": \"https://media.licdn.com/dms/image/C560BAQGaPevqxHti1w/company-logo_400_400/0/1632419555885/volvobusesmex_logo?e=1732147200&v=beta&t=we9ViE6oRfFDrufW9r7qJoJrwzVF--46WPNJhTylMds\"\r\n    }\r\n  },\r\n  {\r\n    \"name\": \"Mercedes-Benz Autobuses\",\r\n    \"description\": \"En Mercedes-Benz Autobuses iniciamos nuestra historia en México en 1994. Durante 28 años, hemos revolucionado la industria del transporte de personas en el país, liderando el mercado mexicano por 24 años consecutivos. Es un orgullo mover a México, y también una gran responsabilidad, misma que nos compromete a trabajar por construir soluciones integrales de movilidad para nuestros clientes todos los días. Un equipo apasionado por los autobuses, por la tecnología, innovación y creatividad es el que integra a esta gran familia. Nuestra Planta mejor conocida como “La casa del Autobús” en García Nuevo León fue inaugurada en 1994, en donde se han producido alrededor de 96,300 unidades, lo que nos coloca como líderes en la industria, movilizando diariamente a más de 38 millones de pasajeros. #SúbeteAlMercedes\\n\\nDiversidad:\\nFomentamos la diversidad y respetamos el principio de igualdad de trato. La diversidad de ideas, enfoques y aptitudes, mejora nuestra calidad de trabajo y asegura de ese modo nuestro éxito a largo plazo.\\n\\nQueremos beneficiarnos de la diversidad social, de idiomas, culturas y proyectos de vida. Fomentamos y respetamos esta diversidad.\\n\\nPor este motivo, no discriminamos a nadie y tratamos a todas las personas por igual, independientemente de su:\\n\\n- Procedencia, origen étnico o nacionalidad.\\n- Religión y creencias.\\n- Actuación política o sindical.\\n- Sexo, orientación sexual, identidad o expresión de género.\\n- Edad.\\n- Discapacidad.\\n- Condición médica.\\n\\nConoce más: https://bit.ly/Politica-Diversidad\",\r\n    \"linkedin_company_url\": \"https://www.linkedin.com/company/daimler-buses-mexico/\",\r\n    \"linkedin_company_id\": \"3831446\",\r\n    \"website\": \"http://www.autobusesmercedesbenz.com.mx/\",\r\n    \"industry\": \"Motor Vehicle Manufacturing\",\r\n    \"company_type\": \"Privately Held\",\r\n    \"founded_year\": null,\r\n    \"location\": \"Gustavo A. Madero, Mexico City, Mexico\",\r\n    \"headquarters\": {\r\n      \"country\": \"Mexico\",\r\n      \"geographicArea\": \"Ciudad De México\",\r\n      \"city\": \"Ciudad de México\",\r\n      \"postalCode\": \"05349\",\r\n      \"line1\": \"Av. Santa Fe #428, Col. Zedec Santa Fe. Del. Cuajimalpa. Ciudad de México.\"\r\n    },\r\n    \"employee_count\": 175,\r\n    \"employee_count_range\": \"201-500\",\r\n    \"employee_growth_percentages\": [\r\n      {\r\n        \"timespan\": \"SIX_MONTHS\",\r\n        \"percentage\": 11\r\n      },\r\n      {\r\n        \"timespan\": \"YEAR\",\r\n        \"percentage\": 19\r\n      },\r\n      {\r\n        \"timespan\": \"TWO_YEAR\",\r\n        \"percentage\": 57\r\n      }\r\n    ],\r\n    \"specialties\": [\r\n      \"Autobuses\",\r\n      \"Transporte\",\r\n      \"Movilidad\",\r\n      \"Tecnología\",\r\n      \"Innovación\",\r\n      \"Liderazgo\"\r\n    ],\r\n    \"revenue_range\": {\r\n      \"estimatedMinRevenue\": {\r\n        \"amount\": 50,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      },\r\n      \"estimatedMaxRevenue\": {\r\n        \"amount\": 100,\r\n        \"unit\": \"MILLION\",\r\n        \"currencyCode\": \"USD\"\r\n      }\r\n    },\r\n    \"decision_makers_count\": \"6\",\r\n    \"logo_urls\": {\r\n      \"100x100\": \"https://media.licdn.com/dms/image/v2/D560BAQFxPVz_9irw1g/img-crop_100/img-crop_100/0/1719876490098?e=1732147200&v=beta&t=QPu3W1364srqwntOjY1--mrDmIx6OY88e4h2xs2DsqI\"\r\n    }\r\n  }\r\n]"
+                    }
+                },
+                "key_points": {
+                    "credits": "Each page request costs 25 credits",
+                    "pagination": {
+                        "linkedin_sales_navigator_search_url": "You can paginate by adding the 'page' query param to the URL. For example, 'page=2'.",
+                        "filters": "You can paginate by including 'page' as one of the keys in the payload."
+                    },
+                    "latency": "The data is fetched in real-time from LinkedIn with latency between 10 to 30 seconds.",
+                    "response_schema": "The response schema differs from the company data enrichment endpoint as data is fetched in real-time. Data will be enriched in Crustdata’s database within 60 minutes of the query."
+                }
+            },
+            "linkedin_post_search": {
+                "description": "This endpoint retrieves recent LinkedIn posts and related engagement metrics for a specified company.Each request returns up-to 5 results per page. To paginate, increment the page query param.",
+                "request": {
+                    "use_case": "Ideal for users who want to fetch recent LinkedIn posts and engagement data for a specific company.",
+                    "note": "You can provide one company LinkedIn URL per request.",
+                    "parameters": {
+                        "company_name": "Optional: Company name",
+                        "company_domain": "Optional: Company domain",
+                        "company_id": "Optional: Company ID",
+                        "company_linkedin_url": "Optional: Company LinkedIn URL",
+                        "fields": "Optional: Comma separated list of fields you want in the response. Default includes all fields except 'reactors'.",
+                        "page": "Optional: Page number for pagination (default: 1)",
+                        "limit": "Optional: Limit the number of posts per page (default: 5)",
+                        "post_types": "Optional: Specify post types. Default: 'repost', 'original'. Options are 'original' and 'repost'."
+                    },
+                    "note_fields": "Provide only one company identifier."
+                },
+                "examples": {
+                    "example_one": {
+                        "pattern": "With default fields",
+                        "curl_solution": "curl 'https://api.crustdata.com/screener/linkedin_posts?company_domain=https://crustdata.com&page=1' \\\r\n  --header 'Accept: application/json, text/plain, */*' \\\r\n  --header 'Accept-Language: en-US,en;q=0.9' \\\r\n  --header 'Authorization: Token $auth_token'"
+                    },
+                    "example_two": {
+                        "pattern": "With default fields + reactors",
+                        "curl_solution": "curl 'https://api.crustdata.com/screener/linkedin_posts?company_domain=https://crustdata.com&page=1&fields=reactors' \\\r\n  --header 'Accept: application/json, text/plain, */*' \\\r\n  --header 'Accept-Language: en-US,en;q=0.9' \\\r\n  --header 'Authorization: Token $auth_token'"
+                    },
+                    "example_three": {
+                        "pattern": "With default post_types",
+                        "curl_solution": "curl 'https://api.crustdata.com/screener/linkedin_posts?company_domain=https://crustdata.com&page=1&post_types=repost%2C%20original' \\\r\n  --header 'Accept: application/json, text/plain, */*' \\\r\n  --header 'Accept-Language: en-US,en;q=0.9' \\\r\n  --header 'Authorization: Token $auth_token'"
+                    }
+                },
+                "response": {
+                    "description": "The response provides a list of recent LinkedIn posts for the specified company, including post content, engagement metrics, and information about users who interacted with the posts.",
+                    "structure": {
+                        "posts": {
+                            "backend_urn": {
+                                "type": "string",
+                                "description": "Unique identifier for the post in LinkedIn's backend system."
+                            },
+                            "share_urn": {
+                                "type": "string",
+                                "description": "Unique identifier for the shared content."
+                            },
+                            "share_url": {
+                                "type": "string",
+                                "description": "Direct URL to the post on LinkedIn."
+                            },
+                            "text": {
+                                "type": "string",
+                                "description": "The full content of the post."
+                            },
+                            "actor_name": {
+                                "type": "string",
+                                "description": "Name of the company or person who created the post."
+                            },
+                            "hyperlinks": {
+                                "type": "object",
+                                "description": "Contains the external links and Company/Person LinkedIn urls mentioned in the post.",
+                                "properties": {
+                                    "company_linkedin_urls": {
+                                        "type": "array",
+                                        "description": "List of Company LinkedIn URLs mentioned in the post.",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "person_linkedin_urls": {
+                                        "type": "array",
+                                        "description": "List of Person LinkedIn URLs mentioned in the post.",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            },
+                            "date_posted": {
+                                "type": "string",
+                                "format": "date",
+                                "description": "Date when the post was published in 'YYYY-MM-DD' format."
+                            },
+                            "total_reactions": {
+                                "type": "integer",
+                                "description": "Total number of reactions on the post."
+                            },
+                            "total_comments": {
+                                "type": "integer",
+                                "description": "Total number of comments on the post."
+                            },
+                            "reactions_by_type": {
+                                "type": "object",
+                                "description": "Breakdown of reactions by type.",
+                                "properties": {
+                                    "LIKE": {
+                                        "type": "integer",
+                                        "description": "Count of 'LIKE' reactions."
+                                    },
+                                    "EMPATHY": {
+                                        "type": "integer",
+                                        "description": "Count of 'EMPATHY' reactions."
+                                    },
+                                    "PRAISE": {
+                                        "type": "integer",
+                                        "description": "Count of 'PRAISE' reactions."
+                                    },
+                                    "INTEREST": {
+                                        "type": "integer",
+                                        "description": "Count of 'INTEREST' reactions."
+                                    },
+                                    "other_types": {
+                                        "type": "integer",
+                                        "description": "Count for other reaction types."
+                                    }
+                                }
+                            },
+                            "num_shares": {
+                                "type": "integer",
+                                "description": "Number of times the post has been shared."
+                            },
+                            "reactors": {
+                                "type": "array",
+                                "description": "List of users who reacted to the post.",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "description": "Full name of the person who reacted."
+                                    },
+                                    "linkedin_profile_url": {
+                                        "type": "string",
+                                        "description": "URL to the reactor's LinkedIn profile."
+                                    },
+                                    "reaction_type": {
+                                        "type": "string",
+                                        "description": "Type of reaction given (e.g., 'LIKE', 'EMPATHY')."
+                                    },
+                                    "profile_image_url": {
+                                        "type": "string",
+                                        "description": "URL to the reactor's profile image (100x100 size)."
+                                    },
+                                    "title": {
+                                        "type": "string",
+                                        "description": "Current professional title of the reactor."
+                                    },
+                                    "additional_info": {
+                                        "type": "string",
+                                        "description": "Additional information, often indicating connection degree."
+                                    },
+                                    "location": {
+                                        "type": "string",
+                                        "description": "Geographic location of the reactor."
+                                    },
+                                    "linkedin_profile_urn": {
+                                        "type": "string",
+                                        "description": "Unique identifier for the reactor's LinkedIn profile."
+                                    },
+                                    "default_position_title": {
+                                        "type": "string",
+                                        "description": "Primary job title of the reactor."
+                                    },
+                                    "default_position_company_linkedin_id": {
+                                        "type": "string",
+                                        "description": "LinkedIn ID of the reactor's primary company."
+                                    },
+                                    "default_position_is_decision_maker": {
+                                        "type": "boolean",
+                                        "description": "Indicates if the reactor is in a decision-making role."
+                                    },
+                                    "flagship_profile_url": {
+                                        "type": "string",
+                                        "description": "Another form of the reactor's LinkedIn profile URL."
+                                    },
+                                    "profile_picture_url": {
+                                        "type": "string",
+                                        "description": "URL to a larger version of the reactor's profile picture (400x400 size)."
+                                    },
+                                    "headline": {
+                                        "type": "string",
+                                        "description": "Professional headline from the reactor's LinkedIn profile."
+                                    },
+                                    "summary": {
+                                        "type": "string",
+                                        "description": "Brief professional summary, if available.",
+                                        "nullable": true
+                                    },
+                                    "num_of_connections": {
+                                        "type": "integer",
+                                        "description": "Number of LinkedIn connections the reactor has."
+                                    },
+                                    "related_colleague_company_id": {
+                                        "type": "integer",
+                                        "description": "LinkedIn ID of a related company, possibly current employer."
+                                    },
+                                    "skills": {
+                                        "type": "array",
+                                        "description": "List of professional skills listed on the reactor's profile.",
+                                        "items": {
+                                        "type": "string"
+                                        }
+                                    },
+                                    "employer": {
+                                        "type": "array",
+                                        "description": "Employment history of the reactor.",
+                                        "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "title": {
+                                            "type": "string",
+                                            "description": "Job title of the reactor."
+                                            },
+                                            "company_name": {
+                                            "type": "string",
+                                            "description": "Name of the employer."
+                                            },
+                                            "company_linkedin_id": {
+                                            "type": "string",
+                                            "description": "LinkedIn ID of the employer company.",
+                                            "nullable": true
+                                            },
+                                            "start_date": {
+                                            "type": "string",
+                                            "format": "date",
+                                            "description": "Start date of employment in ISO format."
+                                            },
+                                            "end_date": {
+                                            "type": "string",
+                                            "format": "date",
+                                            "description": "End date of employment, or null if current.",
+                                            "nullable": true
+                                            },
+                                            "description": {
+                                            "type": "string",
+                                            "description": "Job description, if available.",
+                                            "nullable": true
+                                            },
+                                            "location": {
+                                            "type": "string",
+                                            "description": "Location of the job.",
+                                            "nullable": true
+                                            },
+                                            "rich_media": {
+                                            "type": "array",
+                                            "description": "Currently empty, may contain media related to the job.",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                            }
+                                        }
+                                        }
+                                    },
+                                    "education_background": {
+                                        "type": "array",
+                                        "description": "Educational history of the reactor.",
+                                        "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "degree_name": {
+                                            "type": "string",
+                                            "description": "Type of degree obtained."
+                                            },
+                                            "institute_name": {
+                                            "type": "string",
+                                            "description": "Name of the educational institution."
+                                            },
+                                            "field_of_study": {
+                                            "type": "string",
+                                            "description": "Area of study."
+                                            },
+                                            "start_date": {
+                                            "type": "string",
+                                            "format": "date",
+                                            "description": "Start date of education in ISO format."
+                                            },
+                                            "end_date": {
+                                            "type": "string",
+                                            "format": "date",
+                                            "description": "End date of education in ISO format."
+                                            }
+                                        }
+                                        }
+                                    },
+                                    "emails": {
+                                        "type": "array",
+                                        "description": "Known email addresses associated with the reactor.",
+                                        "items": {
+                                        "type": "string"
+                                        }
+                                    },
+                                    "websites": {
+                                        "type": "array",
+                                        "description": "Currently empty, may contain personal or professional websites.",
+                                        "items": {
+                                        "type": "string"
+                                        }
+                                    },
+                                    "twitter_handle": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "description": "Twitter username, if available."
+                                    },
+                                    "languages": {
+                                        "type": "array",
+                                        "description": "Currently empty, may contain languages spoken.",
+                                        "items": {
+                                        "type": "string"
+                                        }
+                                    },
+                                    "pronoun": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "description": "Preferred pronouns, if specified."
+                                    },
+                                    "current_title": {
+                                        "type": "string",
+                                        "description": "Current job title, often identical to default_position_title."
+                                    }
+                                }
+                            }
+                            }
+                        }  
+                    },
+                    "key_points": {
+                        "credits": {
+                            "default_without_reactors": {
+                                "cost_per_page_request": 5,
+                                "description": "Each successful page request without reactor data will cost 5 credits."
+                            },
+                            "with_reactors": {
+                                "cost_per_page_request": 25,
+                                "description": "Each successful page request with reactor data will cost 25 credits."
+                            }
+                        },
+                        "pagination": {
+                            "page_increment": {
+                                "description": "To fetch the next set of posts, increment the value of the `page` query parameter."
+                            },
+                            "latest_posts_order": {
+                                "description": "The most recent posts will be available on the first page, and older posts will appear on subsequent pages."
+                            },
+                            "max_pages": {
+                                "description": "Currently, a maximum of 20 pages can be fetched. For more, contact Crustdata support."
+                            }
+                        },
+                        "external_links": {
+                            "hyperlinks": {
+                                "description": "The `hyperlinks` field contains a list of links mentioned in the post, categorized into `company_linkedin_urls`, `person_linkedin_urls`, and `other_urls`."
+                            }
+                            },
+                            "latency": {
+                            "real_time_fetch": {
+                                "description": "Data is fetched in real-time from LinkedIn, and the latency for this endpoint ranges between 30 to 60 seconds, depending on the number of reactions for all the posts in the page."
+                            }
+                        }
+                    }
+                }
+            },
+            "linkedin_keyword_post_search": {
+                "description": "This endpoint retrieves LinkedIn posts containing specified keywords along with related engagement metrics. Each request returns 5 posts per page. To paginate, increment the page  in the payload. authentication token auth_token for authorization.",
+                "request": {
+                    "parameters": {
+                        "required": {
+                            "keyword": {
+                                "description": "The keyword or phrase to search for in LinkedIn posts.",
+                                "default": "",
+                                "type": "string"
+                            },
+                            "page": {
+                                "description": "Page number for pagination.",
+                                "default": 1,
+                                "type": "integer"
+                            }
+                        },
+                        "optional": {
+                            "limit": {
+                                "description": "Limit the number of posts in a page.",
+                                "default": 5,
+                                "type": "integer",
+                                "note": "Cannot exceed 5 when `page` is provided."
+                            },
+                            "sort_by": {
+                                "description": "Defines the sorting order of the results. Can be one of the following: 'relevance' - to sort on top match, 'date_posted' - to sort on latest posts.",
+                                "default": "date_posted",
+                                "type": "string",
+                                "possible_values": ["relevance", "date_posted"]
+                            },
+                            "date_posted": {
+                                "description": "Filters posts by the date they were posted. Can be one of the following: 'past-24h' - Posts from last 24 hours, 'past-week' - Posts from last 7 days, 'past-month' - Posts from last 30 days, 'past-quarter' - Posts from last 3 months, 'past-year' - Posts from last 1 year.",
+                                "default": "past-24h",
+                                "type": "string",
+                                "possible_values": [
+                                "past-24h",
+                                "past-week",
+                                "past-month",
+                                "past-quarter",
+                                "past-year"
+                                ]
+                            }
+                        }
+                    },
+                    "exmaple": {
+                        "problem": "Get all the posts with “LLM evaluation”  keyword in last 3 months",
+                        "curl_solution": "curl 'https://api.crustdata.com/screener/linkedin_posts/keyword_search/' \\\r\n-H 'Accept: application/json, text/plain, /' \\\r\n-H 'Accept-Language: en-US,en;q=0.9' \\\r\n-H 'Authorization: Token $auth_token' \\\r\n-H 'Connection: keep-alive' \\\r\n-H 'Content-Type: application/json' \\\r\n-H 'Origin: https://crustdata.com' \\\r\n--data-raw '{\r\n   \"keyword\":\"LLM Evaluation\",\r\n   \"page\":1,\r\n   \"sort_by\":\"relevance\",\r\n   \"date_posted\":\"past-quarter\"\r\n}' \\\r\n--compressed",
+                        "python_solution": "import requests\r\n\r\nheaders = {\r\n    'Accept': 'application/json, text/plain, /',\r\n    'Accept-Language': 'en-US,en;q=0.9',\r\n    'Authorization': 'Token $auth_token', # replace $auth_token\r\n    'Connection': 'keep-alive',\r\n    'Content-Type': 'application/json',\r\n    'Origin': 'https://crustdata.com'\r\n}\r\n\r\njson_data = {\r\n   \"keyword\":\"LLM Evaluation\",\r\n   \"page\":1,\r\n   \"sort_by\":\"relevance\",\r\n   \"date_posted\":\"past-quarter\"\r\n}\r\n\r\nresponse = requests.post('https://api.crustdata.com/screener/linkedin_posts/keyword_search/', headers=headers, json=json_data)"
+                    }
+                },
+                "response": {
+                    "description": "The response provides a list of recent LinkedIn posts for the specified company, including post content, engagement metrics, and information about users who interacted with the posts.",
+                    "info": "Refer to actor_type field to identify if the post is published by a person or a company."
+                },
+                "key_points": {
+                    "credits": {
+                        "description": "Each successful page request costs 5 credits."
+                    },
+                    "pagination": {
+                        "description": "Increment the value of `page` query param to fetch the next set of posts. Each page contains 5 posts.",
+                        "note": "`limit` cannot exceed 5 when `page` is provided in the payload. To retrieve posts in bulk, use the `limit` parameter (with value over 5 allowed here) without the `page` parameter."
+                    },
+                    "latency": {
+                        "description": "The data is fetched in real-time from LinkedIn and the latency for this endpoint is between 5 to 10 seconds depending on the number of posts fetched in a request."
+                    }
+                }
+            }
+        },
+        "people_endpoints": {
+            "profile_api": {
+                "description": "Enrich data for one or more individuals using LinkedIn profile URLs or business email addresses. This API allows you to retrieve enriched person data from Crustdata’s database or perform a real-time search from the web if the data is not available.",
+                "key_features": {
+                    "enrich_data_using_linkedin_or_email": {
+                        "description": "Enrich data using LinkedIn profile URLs or business email addresses.",
+                        "cost_per_profile_email": "3 credits per profile/email"
+                    },
+                    "real_time_search": {
+                        "description": "Option to perform a real-time search if data is not present in the database.",
+                        "cost_per_profile_email": "5 credits per profile/email"
+                    },
+                    "retrieve_up_to_25_profiles_or_emails": {
+                        "description": "Retrieve data for up to 25 profiles or emails in a single request."
+                    }
+                },
+                "request_parameters": {
+                    "Optional": {
+                        "linkedin_profile_url": "Comma-separated list of LinkedIn profile URLs.",
+                        "business_email": "Person business email address.",
+                        "enrich_realtime": {
+                            "description": "Boolean (True or False). If set to True, performs a real-time search from the web if data is not found in the database.",
+                            "default_value": "False",
+                            "example":  "curl 'https://api.crustdata.com/screener/person/enrich?linkedin_profile_url=https://www.linkedin.com/in/dtpow/,https://www.linkedin.com/in/janedoe/&enrich_realtime=True' \\\r\n  --header 'Accept: application/json, text/plain, */*' \\\r\n  --header 'Accept-Language: en-US,en;q=0.9' \\\r\n  --header 'Authorization: Token $auth_token'"
+                        },
+                        "fields": {
+                            "description": "Specifies the fields you want to include in the response. Comma separated list.",
+                            "values": {
+                                "linkedin_profile_url": "string",
+                                "linkedin_flagship_url": "string",
+                                "name": "string",
+                                "location": "string",
+                                "email": "string",
+                                "title": "string",
+                                "last_updated": "string",
+                                "headline": "string",
+                                "summary": "string",
+                                "num_of_connections": "string",
+                                "skills": [
+                                    "string"
+                                ],
+                                "profile_picture_url": "string",
+                                "twitter_handle": "string",
+                                "languages": [
+                                    "string"
+                                ],
+                                "linkedin_open_to_cards": [
+                                    "string"
+                                ],
+                                "all_employers": [
+                                    {
+                                    "title": "string",
+                                    "company_name": "string",
+                                    "company_linkedin_id": "string",
+                                    "start_date": "string",
+                                    "end_date": "string",
+                                    "description": "string",
+                                    "location": "string"
+                                    }
+                                ],
+                                "past_employers": [
+                                    {
+                                    "title": "string",
+                                    "company_name": "string",
+                                    "company_linkedin_id": "string",
+                                    "start_date": "string",
+                                    "end_date": "string",
+                                    "description": "string",
+                                    "location": "string"
+                                    }
+                                ],
+                                "current_employers": [
+                                    {
+                                    "title": "string",
+                                    "company_name": "string",
+                                    "company_linkedin_id": "string",
+                                    "start_date": "string",
+                                    "end_date": "string",
+                                    "description": "string",
+                                    "location": "string"
+                                    }
+                                ],
+                                "education_background": [
+                                    {
+                                    "degree_name": "string",
+                                    "end_date": "string",
+                                    "field_of_study": "string",
+                                    "institute_linkedin_id": "string",
+                                    "institute_linkedin_url": "string",
+                                    "institute_logo_url": "string",
+                                    "institute_name": "string",
+                                    "start_date": "string",
+                                    "activities_and_societies": "string"
+                                    }
+                                ],
+                                "certifications": [
+                                    {
+                                    "certification_name": "string",
+                                    "issuer": "string",
+                                    "date_issued": "string",
+                                    "expiration_date": "string",
+                                    "credential_id": "string",
+                                    "credential_url": "string"
+                                    }
+                                ],
+                                "honors": [
+                                    {
+                                    "honor_name": "string",
+                                    "issuer": "string",
+                                    "date_awarded": "string"
+                                    }
+                                ],
+                                "all_employers_company_id": [
+                                    123
+                                ],
+                                "all_titles": [
+                                    "string"
+                                ],
+                                "all_schools": [
+                                    "string"
+                                ],
+                                "all_degrees": [
+                                    "string"
+                                ],
+                                "all_connections": [
+                                    "string"
+                                ]
+                            }
+                        }
+                    },
+                    "notes": {
+                        "mandatory_parameters": {
+                        "linkedin_profile_url": "You must provide either linkedin_profile_url or business_email. Do not include both in the same request."
+                        },
+                        "formatting": {
+                        "multiple_urls_emails": "Multiple LinkedIn profile URLs or business emails should be comma-separated. Extra spaces or tabs before or after commas will be ignored."
+                        },
+                        "fields": {
+                        "default_fields": "If you don’t use fields, you will get all the fields in response except 'all_connections', 'linkedin_open_to_cards', 'certifications', 'honors', and 'education_background.activities_and_societies'.",
+                        "restricted_access": "Access to certain fields may be restricted based on your user permissions. If you request fields you do not have access to, the API will return an error indicating unauthorized access.",
+                        "top_level_fields": "Top level non-object fields are present in the response irrespective of fields.",
+                        "metadata_fields": "Don’t include metadata fields: 'enriched_realtime', 'score', and 'query_linkedin_profile_urn_or_slug' in fields."
+                        }
+                    }
+                },
+                "examples": {
+                    "example_one": {
+                        "pattern": "Request with all fields",
+                        "use_case": "Ideal for users who wants to access all fields which are not provided by default",
+                        "curl_example": "curl -X GET \"https://api.crustdata.com/screener/person/enrich?linkedin_profile_url=https://www.linkedin.com/in/sasikumarm00&enrich_realtime=true&fields=linkedin_profile_url,linkedin_flagship_url,name,location,email,title,last_updated,headline,summary,num_of_connections,skills,profile_picture_url,twitter_handle,languages,linkedin_open_to_cards,all_employers,past_employers,current_employers,education_background.degree_name,education_background.end_date,education_background.field_of_study,education_background.institute_linkedin_id,education_background.institute_linkedin_url,education_background.institute_logo_url,education_background.institute_name,education_background.start_date,education_background.activities_and_societies,certifications,honors,all_employers_company_id,all_titles,all_schools,all_degrees,all_connections\" \\\r\n-H \"Authorization: Token auth_token\" \\,\r\n-H \"Content-Type: application/json\""
+                    },
+                    "example_two": {
+                        "pattern": "Request with all default fields AND education_background.activities_and_societies",
+                        "curl_example": "curl -X GET \"https://api.crustdata.com/screener/person/enrich?linkedin_profile_url=https://www.linkedin.com/in/sasikumarm00&enrich_realtime=true&fields=linkedin_profile_url,linkedin_flagship_url,name,location,email,title,last_updated,headline,summary,num_of_connections,skills,profile_picture_url,twitter_handle,languages,all_employers,past_employers,current_employers,education_background.degree_name,education_background.end_date,education_background.field_of_study,education_background.institute_linkedin_id,education_background.institute_linkedin_url,education_background.institute_logo_url,education_background.institute_name,education_background.start_date,education_background.activities_and_societies,all_employers_company_id,all_titles,all_schools,all_degrees\" \\\r\n-H \"Authorization: Token auth_token\" \\\r\n-H \"Content-Type: application/json\""
+                    },
+                    "example_three": {
+                        "pattern": "Request with all default fields AND certifications , honors  and linkedin_open_to_cards",
+                        "curl_example": "curl -X GET \"https://api.crustdata.com/screener/person/enrich?linkedin_profile_url=https://www.linkedin.com/in/sasikumarm00&enrich_realtime=true&fields=linkedin_profile_url,linkedin_flagship_url,name,location,email,title,last_updated,headline,summary,num_of_connections,skills,profile_picture_url,twitter_handle,languages,all_employers,past_employers,current_employers,education_background.degree_name,education_background.end_date,education_background.field_of_study,education_background.institute_linkedin_id,education_background.institute_linkedin_url,education_background.institute_logo_url,education_background.institute_name,education_background.start_date,all_employers_company_id,all_titles,all_schools,all_degrees,linkedin_open_to_cards,certifications,honors\" \\\r\n-H \"Authorization: Token auth_token\" \\\r\n-H \"Content-Type: application/json\""
+                    },
+                    "example_four": {
+                        "pattern": "Request without fields",
+                        "curl_example": "curl -X GET \"https://api.crustdata.com/screener/person/enrich?linkedin_profile_url=https://www.linkedin.com/in/sasikumarm00&enrich_realtime=true\" \\\r\n-H \"Authorization: Token auth_token\" \\\r\n-H \"Content-Type: application/json\""
+                    },
+                    "example_five": {
+                        "pattern": "Request with business email",
+                        "curl_example": "curl -X GET \"https://api.crustdata.com/screener/person/enrich?business_email=shubham.joshi@coindcx.com&enrich_realtime=true\" \\\r\n-H \"Authorization: Token auth_token\" \\\r\n-H \"Content-Type: application/json\""
+                    }
+                },
+                "response_structure": {
+                    "when_profiles_present": {
+                    "description": "Response will include the enriched data for each LinkedIn profile.",
+                    "example": "https://jsonhero.io/j/UEyFru4RDLoI"
+                    },
+                    "when_profiles_not_found": {
+                    "description": "An error message will be returned for each profile not found, with instructions to query again after 60 minutes.",
+                    "example": "https://jsonhero.io/j/kwdasun8HdqM"
+                    },
+                    "all_possible_fields": {
+                    "description": "Response with all possible fields.",
+                    "example": "https://jsonhero.io/j/zenKXWh36HsM"
+                    }
+                },
+                "response_facts": {
+                    "enrich_realtime_false": {
+                    "description": "If some profiles or emails are not found and 'enrich_realtime=False', an empty response will be returned for those entries. They will be auto-enriched in the background and can be queried again after 60 minutes."
+                    },
+                    "enrich_realtime_true": {
+                    "description": "If 'enrich_realtime=True' and the profile/email cannot be found via real-time search, an error message will be returned for those entries."
+                    }
+                },
+                "key_points": {
+                    "latency": {
+                        "database_search": {
+                        "description": "Less than 10 seconds per profile."
+                        },
+                        "real_time_search": {
+                        "description": "May take longer due to fetching data from the web."
+                        }
+                    },
+                    "limits": {
+                        "profiles_emails_per_request": {
+                        "description": "Up to 25 profiles or emails per request."
+                        },
+                        "exceeding_limits": {
+                        "description": "Requests exceeding this limit will be rejected with an error message."
+                        }
+                    },
+                    "credits": {
+                        "database_enrichment": {
+                        "cost": "3 credits per LinkedIn profile or email."
+                        },
+                        "real_time_enrichment": {
+                        "cost": "5 credits per LinkedIn profile or email (when enrich_realtime=True)."
+                        }
+                    },
+                    "constraints": {
+                        "valid_input": {
+                        "description": "Ensure all LinkedIn URLs and email addresses are correctly formatted. Invalid inputs result in validation errors."
+                        },
+                        "mutually_exclusive_parameters": {
+                        "description": "Do not include both linkedin_profile_url and business_email in the same request."
+                        },
+                        "independent_processing": {
+                        "description": "Each profile or email is processed independently. Found entries are returned immediately. Not found entries trigger the enrichment process (if enrich_realtime=False)."
+                        }
+                    }
+                }
+            },
+            "people_search": {
+                "description": "Search for people profiles based on either a direct LinkedIn Sales Navigator search URL or a custom search criteria as a filter. This endpoint allows you to retrieve detailed information about individuals matching specific criteria.Each request returns upto 25 results. To paginate, update the page number of the Sales Navigator search URL and do the request again. In the request payload, either set the url of the Sales Navigator Leads search from your browser in the parameter `linkedin_sales_navigator_search_url` or specify the search criteria as a JSON object in the parameter `filters`"
+            }
+        }
+    }
+}
